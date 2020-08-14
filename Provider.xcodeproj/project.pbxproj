@@ -65,8 +65,9 @@
 		4C04A5F924E6EEBA00D73E0E = {
 			isa = PBXGroup;
 			children = (
-				4C04A60424E6EEBA00D73E0E /* Provider */,
-				4C04A61B24E6EEBC00D73E0E /* ProviderTests */,
+				4C0A30AC24E71DB400E80753 /* Sources */,
+				4C04A62724E6EEE400D73E0E /* Example */,
+				4C04A61B24E6EEBC00D73E0E /* Tests */,
 				4C04A60324E6EEBA00D73E0E /* Products */,
 			);
 			sourceTree = "<group>";
@@ -80,15 +81,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		4C04A60424E6EEBA00D73E0E /* Provider */ = {
-			isa = PBXGroup;
-			children = (
-				4C04A62724E6EEE400D73E0E /* Example */,
-				4C04A62824E6EEEC00D73E0E /* Framework */,
-			);
-			path = Provider;
-			sourceTree = "<group>";
-		};
 		4C04A60D24E6EEBC00D73E0E /* Preview Content */ = {
 			isa = PBXGroup;
 			children = (
@@ -97,13 +89,13 @@
 			path = "Preview Content";
 			sourceTree = "<group>";
 		};
-		4C04A61B24E6EEBC00D73E0E /* ProviderTests */ = {
+		4C04A61B24E6EEBC00D73E0E /* Tests */ = {
 			isa = PBXGroup;
 			children = (
 				4C04A61C24E6EEBC00D73E0E /* ProviderTests.swift */,
 				4C04A61E24E6EEBC00D73E0E /* Info.plist */,
 			);
-			path = ProviderTests;
+			path = Tests;
 			sourceTree = "<group>";
 		};
 		4C04A62724E6EEE400D73E0E /* Example */ = {
@@ -120,11 +112,11 @@
 			path = Example;
 			sourceTree = "<group>";
 		};
-		4C04A62824E6EEEC00D73E0E /* Framework */ = {
+		4C0A30AC24E71DB400E80753 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
 			);
-			path = Framework;
+			path = Sources;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -391,10 +383,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_ASSET_PATHS = "\"Provider/Example/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"Example/Preview Content\"";
 				DEVELOPMENT_TEAM = JL4AKR8DVC;
 				ENABLE_PREVIEWS = YES;
-				INFOPLIST_FILE = Provider/Example/Info.plist;
+				INFOPLIST_FILE = Example/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -411,10 +403,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_ASSET_PATHS = "\"Provider/Example/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"Example/Preview Content\"";
 				DEVELOPMENT_TEAM = JL4AKR8DVC;
 				ENABLE_PREVIEWS = YES;
-				INFOPLIST_FILE = Provider/Example/Info.plist;
+				INFOPLIST_FILE = Example/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -433,7 +425,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = JL4AKR8DVC;
-				INFOPLIST_FILE = ProviderTests/Info.plist;
+				INFOPLIST_FILE = Tests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -455,7 +447,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = JL4AKR8DVC;
-				INFOPLIST_FILE = ProviderTests/Info.plist;
+				INFOPLIST_FILE = Tests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

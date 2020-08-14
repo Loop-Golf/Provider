@@ -8,14 +8,23 @@
 
 import Foundation
 
+/// Describes a type that can be used to implement behaviors for provider requests.
 public protocol ProviderBehavior {
+    
+    /// Called before a provider request is performed.
+    /// - Parameter request: The request that will be made.
     func providerWillProvide(forRequest request: ProviderRequest)
-    func providerDidProvide<T: Codable>(object: T, forRequest request: ProviderRequest)
+    
+    /// Called when the provider request has completed and an item has been provided.
+    /// - Parameters:
+    ///   - object: The requested item.
+    ///   - request: The request that was performed to retrieve the item.
+    func providerDidProvide<T: Codable>(item: T, forRequest request: ProviderRequest)
 }
 
 extension ProviderBehavior {
     func providerWillProvide(forRequest request: ProviderRequest) { }
-    func providerDidProvide<T: Codable>(object: T, forRequest request: ProviderRequest) { }
+    func providerDidProvide<T: Codable>(item: T, forRequest request: ProviderRequest) { }
 }
 
 extension Array: ProviderBehavior where Element == ProviderBehavior {
@@ -23,7 +32,7 @@ extension Array: ProviderBehavior where Element == ProviderBehavior {
         forEach { $0.providerWillProvide(forRequest: request) }
     }
     
-    public func providerDidProvide<T: Codable>(object: T, forRequest request: ProviderRequest) {
-        forEach { $0.providerDidProvide(object: object, forRequest: request) }
+    public func providerDidProvide<T: Codable>(item: T, forRequest request: ProviderRequest) {
+        forEach { $0.providerDidProvide(item: item, forRequest: request) }
     }
 }

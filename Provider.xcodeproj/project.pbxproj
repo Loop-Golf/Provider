@@ -15,6 +15,12 @@
 		4C04A61224E6EEBC00D73E0E /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4C04A61024E6EEBC00D73E0E /* LaunchScreen.storyboard */; };
 		4C04A61D24E6EEBC00D73E0E /* ProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C04A61C24E6EEBC00D73E0E /* ProviderTests.swift */; };
 		4C0A30AA24E7174200E80753 /* Persister in Frameworks */ = {isa = PBXBuildFile; productRef = 4C0A30A924E7174200E80753 /* Persister */; };
+		4C0A30AF24E71EEF00E80753 /* Provider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C0A30AD24E71EEF00E80753 /* Provider.swift */; };
+		4C0A30B024E71EEF00E80753 /* ProviderRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C0A30AE24E71EEF00E80753 /* ProviderRequest.swift */; };
+		4C0A30B224E71EF600E80753 /* ProviderBehavior.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C0A30B124E71EF600E80753 /* ProviderBehavior.swift */; };
+		4C0A30B624E71EFE00E80753 /* ProviderError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C0A30B324E71EFE00E80753 /* ProviderError.swift */; };
+		4C0A30B724E71EFE00E80753 /* ObjectProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C0A30B424E71EFE00E80753 /* ObjectProvider.swift */; };
+		4C0A30B824E71EFE00E80753 /* Identifiable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C0A30B524E71EFE00E80753 /* Identifiable.swift */; };
 		4CC4416324E6F7EB00F48427 /* Networking in Frameworks */ = {isa = PBXBuildFile; productRef = 4CC4416224E6F7EB00F48427 /* Networking */; };
 /* End PBXBuildFile section */
 
@@ -40,6 +46,12 @@
 		4C04A61824E6EEBC00D73E0E /* ProviderTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ProviderTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4C04A61C24E6EEBC00D73E0E /* ProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderTests.swift; sourceTree = "<group>"; };
 		4C04A61E24E6EEBC00D73E0E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		4C0A30AD24E71EEF00E80753 /* Provider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Provider.swift; sourceTree = "<group>"; };
+		4C0A30AE24E71EEF00E80753 /* ProviderRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProviderRequest.swift; sourceTree = "<group>"; };
+		4C0A30B124E71EF600E80753 /* ProviderBehavior.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProviderBehavior.swift; sourceTree = "<group>"; };
+		4C0A30B324E71EFE00E80753 /* ProviderError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProviderError.swift; sourceTree = "<group>"; };
+		4C0A30B424E71EFE00E80753 /* ObjectProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObjectProvider.swift; sourceTree = "<group>"; };
+		4C0A30B524E71EFE00E80753 /* Identifiable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Identifiable.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -115,6 +127,12 @@
 		4C0A30AC24E71DB400E80753 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				4C0A30B124E71EF600E80753 /* ProviderBehavior.swift */,
+				4C0A30AD24E71EEF00E80753 /* Provider.swift */,
+				4C0A30AE24E71EEF00E80753 /* ProviderRequest.swift */,
+				4C0A30B524E71EFE00E80753 /* Identifiable.swift */,
+				4C0A30B424E71EFE00E80753 /* ObjectProvider.swift */,
+				4C0A30B324E71EFE00E80753 /* ProviderError.swift */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -228,8 +246,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4C0A30B224E71EF600E80753 /* ProviderBehavior.swift in Sources */,
+				4C0A30B724E71EFE00E80753 /* ObjectProvider.swift in Sources */,
+				4C0A30AF24E71EEF00E80753 /* Provider.swift in Sources */,
 				4C04A60624E6EEBA00D73E0E /* AppDelegate.swift in Sources */,
+				4C0A30B824E71EFE00E80753 /* Identifiable.swift in Sources */,
 				4C04A60824E6EEBA00D73E0E /* SceneDelegate.swift in Sources */,
+				4C0A30B024E71EEF00E80753 /* ProviderRequest.swift in Sources */,
+				4C0A30B624E71EFE00E80753 /* ProviderError.swift in Sources */,
 				4C04A60A24E6EEBA00D73E0E /* ContentView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

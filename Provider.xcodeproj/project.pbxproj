@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -14,6 +14,8 @@
 		4C04A60F24E6EEBC00D73E0E /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4C04A60E24E6EEBC00D73E0E /* Preview Assets.xcassets */; };
 		4C04A61224E6EEBC00D73E0E /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4C04A61024E6EEBC00D73E0E /* LaunchScreen.storyboard */; };
 		4C04A61D24E6EEBC00D73E0E /* ProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C04A61C24E6EEBC00D73E0E /* ProviderTests.swift */; };
+		4C0A30AA24E7174200E80753 /* Persister in Frameworks */ = {isa = PBXBuildFile; productRef = 4C0A30A924E7174200E80753 /* Persister */; };
+		4CC4416324E6F7EB00F48427 /* Networking in Frameworks */ = {isa = PBXBuildFile; productRef = 4CC4416224E6F7EB00F48427 /* Networking */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -45,6 +47,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4C0A30AA24E7174200E80753 /* Persister in Frameworks */,
+				4CC4416324E6F7EB00F48427 /* Networking in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -139,6 +143,10 @@
 			dependencies = (
 			);
 			name = Provider;
+			packageProductDependencies = (
+				4CC4416224E6F7EB00F48427 /* Networking */,
+				4C0A30A924E7174200E80753 /* Persister */,
+			);
 			productName = Provider;
 			productReference = 4C04A60224E6EEBA00D73E0E /* Provider.app */;
 			productType = "com.apple.product-type.application";
@@ -189,6 +197,10 @@
 				Base,
 			);
 			mainGroup = 4C04A5F924E6EEBA00D73E0E;
+			packageReferences = (
+				4CC4416124E6F7EB00F48427 /* XCRemoteSwiftPackageReference "Networking" */,
+				4C0A30A824E7174200E80753 /* XCRemoteSwiftPackageReference "Persister" */,
+			);
 			productRefGroup = 4C04A60324E6EEBA00D73E0E /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -489,6 +501,38 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		4C0A30A824E7174200E80753 /* XCRemoteSwiftPackageReference "Persister" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Lickability/Persister";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+		4CC4416124E6F7EB00F48427 /* XCRemoteSwiftPackageReference "Networking" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Lickability/Networking";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		4C0A30A924E7174200E80753 /* Persister */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4C0A30A824E7174200E80753 /* XCRemoteSwiftPackageReference "Persister" */;
+			productName = Persister;
+		};
+		4CC4416224E6F7EB00F48427 /* Networking */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4CC4416124E6F7EB00F48427 /* XCRemoteSwiftPackageReference "Networking" */;
+			productName = Networking;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 4C04A5FA24E6EEBA00D73E0E /* Project object */;
 }

@@ -8,7 +8,13 @@
 
 import Foundation
 
+/// A list of possible errors encountered while attempting to provide items.
 enum ProviderError: Error {
-    case decodingFailed(underlyingError: Error)
+    
+    /// An underlying decoding error occurred.
+    /// - Parameter error: The error that occurred while decoding.
+    case decodingError(_ error: Error)
+    
+    /// There was no strong reference kept to the `ObjectProvider`.
     case noStrongReferenceToObjectProvider
 }

@@ -50,7 +50,7 @@ public final class ObjectProvider: Provider {
                                 
                                 providerBehaviors.providerDidProvide(item: object, forRequest: request)
                             } catch {
-                                completionQueue.async { completion(.failure(ProviderError.decodingFailed(underlyingError: error))) }
+                                completionQueue.async { completion(.failure(ProviderError.decodingError(error))) }
                             }
                         } else {
                             completionQueue.async { completion(.failure(NetworkError.noData))}
@@ -89,7 +89,7 @@ public final class ObjectProvider: Provider {
                                 
                                 providerBehaviors.providerDidProvide(item: objects, forRequest: request)
                             } catch {
-                                completionQueue.async { completion(.failure(ProviderError.decodingFailed(underlyingError: error))) }
+                                completionQueue.async { completion(.failure(ProviderError.decodingError(error))) }
                             }
                         } else {
                             completionQueue.async { completion(.failure(NetworkError.noData)) }

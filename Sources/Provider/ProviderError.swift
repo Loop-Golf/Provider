@@ -9,7 +9,7 @@
 import Networking
 import Persister
 
-/// A list of possible errors encountered while attempting to provide items.
+/// Possible errors encountered while attempting to provide items.
 public enum ProviderError: Error {
     
     /// An underlying networking error occurred.
@@ -17,7 +17,7 @@ public enum ProviderError: Error {
     case networkError(_ error: NetworkError)
     
     /// An underlying persistence error occurred.
-    /// - Parameter error: The error that occurred while perform cache read/write operations.
+    /// - Parameter error: The error that occurred while performing cache read/write operations.
     case persistenceError(_ error: PersistenceError)
     
     /// An underlying decoding error occurred.

@@ -8,7 +8,7 @@
 
 import Networking
 
-/// A protocol that defines the parameters that make up a item providing request.
+/// Describes a type that defines the parameters that make up an item providing request.
 public protocol ProviderRequest: NetworkRequest {
     
     /// The key to use for persistence of the item.

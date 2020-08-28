@@ -15,7 +15,7 @@ public typealias Providable = Codable & Identifiable
 
 /// Describes a type that can retrieve items from network or persistence, and store in persistence.
 public protocol Provider {
-    func provide<T: Providable>(request: ProviderRequest, decoder: PersistenceDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], completionQueue: DispatchQueue, completion: @escaping (Result<T, Error>) -> Void)
+    func provide<T: Providable>(request: ProviderRequest, decoder: PersistenceDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], completionQueue: DispatchQueue, completion: @escaping (Result<T, ProviderError>) -> Void)
     
-    func provideObjects<T: Providable>(request: ProviderRequest, decoder: PersistenceDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], completionQueue: DispatchQueue, completion: @escaping (Result<[T], Error>) -> Void)
+    func provideObjects<T: Providable>(request: ProviderRequest, decoder: PersistenceDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], completionQueue: DispatchQueue, completion: @escaping (Result<[T], ProviderError>) -> Void)
 }

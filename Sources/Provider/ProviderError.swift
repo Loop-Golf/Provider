@@ -6,10 +6,19 @@
 //  Copyright © 2019 Lickability. All rights reserved.
 //
 
-import Foundation
+import Networking
+import Persister
 
 /// A list of possible errors encountered while attempting to provide items.
-enum ProviderError: Error {
+public enum ProviderError: Error {
+    
+    /// An underlying networking error occurred.
+    /// - Parameter error: The error that occurred with the network request.
+    case networkError(_ error: NetworkError)
+    
+    /// An underlying persistence error occurred.
+    /// - Parameter error: The error that occurred while perform cache read/write operations.
+    case persistenceError(_ error: PersistenceError)
     
     /// An underlying decoding error occurred.
     /// - Parameter error: The error that occurred while decoding.

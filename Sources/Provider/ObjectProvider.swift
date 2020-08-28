@@ -23,7 +23,7 @@ public final class ObjectProvider: Provider {
         self.defaultProviderBehaviors = defaultProviderBehaviors
     }
     
-    public func provide<T: Providable>(request: ProviderRequest, decoder: PersistenceDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], completionQueue: DispatchQueue, completion: @escaping (Result<T, Error>) -> Void) {
+    public func provide<T: Providable>(request: ProviderRequest, decoder: PersistenceDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], completionQueue: DispatchQueue, completion: @escaping (Result<T, ProviderError>) -> Void) {
         providerQueue.async { [weak self] in
             guard let self = self else {
                 completion(.failure(ProviderError.noStrongReferenceToObjectProvider))
@@ -53,17 +53,17 @@ public final class ObjectProvider: Provider {
                                 completionQueue.async { completion(.failure(ProviderError.decodingError(error))) }
                             }
                         } else {
-                            completionQueue.async { completion(.failure(NetworkError.noData))}
+                            completionQueue.async { completion(.failure(.networkError(.noData)))}
                         }
                     case let .failure(error):
-                        completionQueue.async { completion(.failure(error)) }
+                        completionQueue.async { completion(.failure(.networkError(error))) }
                     }
                 }
             }
         }
     }
     
-    public func provideObjects<T: Providable>(request: ProviderRequest, decoder: PersistenceDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], completionQueue: DispatchQueue = .main, completion: @escaping (Result<[T], Error>) -> Void) {
+    public func provideObjects<T: Providable>(request: ProviderRequest, decoder: PersistenceDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], completionQueue: DispatchQueue = .main, completion: @escaping (Result<[T], ProviderError>) -> Void) {
         providerQueue.async { [weak self] in
             guard let self = self else {
                 completion(.failure(ProviderError.noStrongReferenceToObjectProvider))
@@ -92,10 +92,10 @@ public final class ObjectProvider: Provider {
                                 completionQueue.async { completion(.failure(ProviderError.decodingError(error))) }
                             }
                         } else {
-                            completionQueue.async { completion(.failure(NetworkError.noData)) }
+                            completionQueue.async { completion(.failure(.networkError(.noData))) }
                         }
                     case let .failure(error):
-                        completionQueue.async { completion(.failure(error)) }
+                        completionQueue.async { completion(.failure(.networkError(error))) }
                     }
                 }
             }

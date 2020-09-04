@@ -24,7 +24,7 @@ public protocol Provider {
     ///   - requestBehaviors: Actions to perform before the network request is performed and / or after the network request is completed. Only called if the item wasn’t successfully retrieved from persistence.
     ///   - completionQueue: The queue on which to call the completion handler.
     ///   - completion: The closure called upon completing the request that provides the desired item or the error that occurred when attempting to retrieve it.
-    func provide<Item: Providable>(request: ProviderRequest, decoder: PersistenceDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], completionQueue: DispatchQueue, completion: @escaping (Result<Item, ProviderError>) -> Void)
+    func provide<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], completionQueue: DispatchQueue, completion: @escaping (Result<Item, ProviderError>) -> Void)
     
     /// Attempts to retrieve an array of items using the provided request, checking persistence first where possible and falling back to the network. If the network is used, the items will be persisted upon success.
     /// - Parameters:
@@ -34,5 +34,5 @@ public protocol Provider {
     ///   - requestBehaviors: Actions to perform before the network request is performed and / or after the network request is completed. Only called if the items weren’t successfully retrieved from persistence.
     ///   - completionQueue: The queue on which to call the completion handler.
     ///   - completion: The closure called upon completing the request that provides the desired items or the error that occurred when attempting to retrieve them.
-    func provideItems<Item: Providable>(request: ProviderRequest, decoder: PersistenceDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], completionQueue: DispatchQueue, completion: @escaping (Result<[Item], ProviderError>) -> Void)
+    func provideItems<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], completionQueue: DispatchQueue, completion: @escaping (Result<[Item], ProviderError>) -> Void)
 }

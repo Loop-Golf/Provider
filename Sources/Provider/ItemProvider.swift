@@ -23,7 +23,7 @@ public final class ItemProvider: Provider {
         self.defaultProviderBehaviors = defaultProviderBehaviors
     }
     
-    public func provide<T: Providable>(request: ProviderRequest, decoder: PersistenceDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], completionQueue: DispatchQueue, completion: @escaping (Result<T, ProviderError>) -> Void) {
+    public func provide<Item: Providable>(request: ProviderRequest, decoder: PersistenceDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], completionQueue: DispatchQueue, completion: @escaping (Result<Item, ProviderError>) -> Void) {
         providerQueue.async { [weak self] in
             guard let self = self else {
                 completion(.failure(ProviderError.noStrongReferenceToProvider))
@@ -33,7 +33,7 @@ public final class ItemProvider: Provider {
             let providerBehaviors = self.defaultProviderBehaviors + providerBehaviors
             providerBehaviors.providerWillProvide(forRequest: request)
             
-            if let cachedItem: T = try? self.cache?.read(forKey: request.persistenceKey) {
+            if let cachedItem: Item = try? self.cache?.read(forKey: request.persistenceKey) {
                 completionQueue.async { completion(.success(cachedItem)) }
                 
                 providerBehaviors.providerDidProvide(item: cachedItem, forRequest: request)
@@ -43,7 +43,7 @@ public final class ItemProvider: Provider {
                     case let .success(response):
                         if let data = response.data {
                             do {
-                                let item = try decoder.decode(T.self, from: data)
+                                let item = try decoder.decode(Item.self, from: data)
                                 try self?.cache?.write(item: item, forKey: request.persistenceKey)
                                 completionQueue.async { completion(.success(item)) }
                                 
@@ -62,7 +62,7 @@ public final class ItemProvider: Provider {
         }
     }
     
-    public func provideItems<T: Providable>(request: ProviderRequest, decoder: PersistenceDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], completionQueue: DispatchQueue = .main, completion: @escaping (Result<[T], ProviderError>) -> Void) {
+    public func provideItems<Item: Providable>(request: ProviderRequest, decoder: PersistenceDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], completionQueue: DispatchQueue = .main, completion: @escaping (Result<[Item], ProviderError>) -> Void) {
         providerQueue.async { [weak self] in
             guard let self = self else {
                 completion(.failure(ProviderError.noStrongReferenceToProvider))
@@ -72,7 +72,7 @@ public final class ItemProvider: Provider {
             let providerBehaviors = self.defaultProviderBehaviors + providerBehaviors
             providerBehaviors.providerWillProvide(forRequest: request)
             
-            if let cachedItems: [T] = self.cache?.readItems(forKey: request.persistenceKey), !cachedItems.isEmpty {
+            if let cachedItems: [Item] = self.cache?.readItems(forKey: request.persistenceKey), !cachedItems.isEmpty {
                 completionQueue.async { completion(.success(cachedItems)) }
                 
                 providerBehaviors.providerDidProvide(item: cachedItems, forRequest: request)
@@ -82,7 +82,7 @@ public final class ItemProvider: Provider {
                     case let .success(response):
                         if let data = response.data {
                             do {
-                                let items = try decoder.decode([T].self, from: data)
+                                let items = try decoder.decode([Item].self, from: data)
                                 self?.cache?.writeItems(items, forKey: request.persistenceKey)
                                 completionQueue.async { completion(.success(items)) }
                                 
@@ -118,13 +118,13 @@ extension FileManager {
 }
 
 private extension Cache {
-    func readItems<T: Codable>(forKey key: Key) -> [T]? {
+    func readItems<Item: Codable>(forKey key: Key) -> [Item]? {
         let itemIDs: [String]? = try? read(forKey: key)
         
         return itemIDs?.compactMap { try? read(forKey: $0) }
     }
     
-    func writeItems<T: Providable>(_ items: [T], forKey key: Key) {
+    func writeItems<Item: Providable>(_ items: [Item], forKey key: Key) {
         items.forEach { item in
             try? write(item: item, forKey: item.identifier)
         }

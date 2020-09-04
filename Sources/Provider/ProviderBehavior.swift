@@ -19,12 +19,12 @@ public protocol ProviderBehavior {
     /// - Parameters:
     ///   - item: The requested item.
     ///   - request: The request that was performed to retrieve the item.
-    func providerDidProvide<T: Codable>(item: T, forRequest request: ProviderRequest)
+    func providerDidProvide<Item: Codable>(item: Item, forRequest request: ProviderRequest)
 }
 
 extension ProviderBehavior {
     func providerWillProvide(forRequest request: ProviderRequest) { }
-    func providerDidProvide<T: Codable>(item: T, forRequest request: ProviderRequest) { }
+    func providerDidProvide<Item: Codable>(item: Item, forRequest request: ProviderRequest) { }
 }
 
 extension Array: ProviderBehavior where Element == ProviderBehavior {
@@ -32,7 +32,7 @@ extension Array: ProviderBehavior where Element == ProviderBehavior {
         forEach { $0.providerWillProvide(forRequest: request) }
     }
     
-    public func providerDidProvide<T: Codable>(item: T, forRequest request: ProviderRequest) {
+    public func providerDidProvide<Item: Codable>(item: Item, forRequest request: ProviderRequest) {
         forEach { $0.providerDidProvide(item: item, forRequest: request) }
     }
 }

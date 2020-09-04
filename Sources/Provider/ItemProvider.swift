@@ -10,18 +10,28 @@ import Foundation
 import Networking
 import Persister
 
-public final class ItemProvider: Provider {
-    
+/// Retrieves items from persistence or networking and stores them in persistence.
+public final class ItemProvider {
     private let networkRequestPerformer: NetworkRequestPerformer
     private let cache: Cache?
     private let defaultProviderBehaviors: [ProviderBehavior]
     private let providerQueue = DispatchQueue(label: "ProviderQueue", attributes: .concurrent)
     
+    /// Creates a new `ItemProvider`.
+    /// - Parameters:
+    ///   - networkRequestPerformer: Performs network requests when items cannot be retrieved from persistence.
+    ///   - cache: The cache used to persist / recall previously retrieved items.
+    ///   - defaultProviderBehaviors: Actions to perform before _every_ provider request is performed and / or after _every_ provider request is completed.
     public init(networkRequestPerformer: NetworkRequestPerformer, cache: Cache?, defaultProviderBehaviors: [ProviderBehavior]) {
         self.networkRequestPerformer = networkRequestPerformer
         self.cache = cache
         self.defaultProviderBehaviors = defaultProviderBehaviors
     }
+}
+
+extension ItemProvider: Provider {
+    
+    // MARK: - Provider
     
     public func provide<Item: Providable>(request: ProviderRequest, decoder: PersistenceDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], completionQueue: DispatchQueue, completion: @escaping (Result<Item, ProviderError>) -> Void) {
         providerQueue.async { [weak self] in
@@ -103,17 +113,23 @@ public final class ItemProvider: Provider {
 }
 
 extension ItemProvider {
-    public static func configuredProvider(withRootPersistenceURL persistenceURL: URL = FileManager.default.documentDirectoryURL, cacheCapacity: CacheCapacity = .limited(numberOfItems: 100)) -> ItemProvider {
+    
+    /// Creates an `ItemProvider` configured with a `Persister` (memory and disk cache) and `NetworkController`.
+    /// - Parameters:
+    ///   - persistenceURL: The location on disk in which items are persisted. Defaults to the Application Support directory.
+    ///   - memoryCacheCapacity: The capacity of the LRU memory cache. Defaults to a limited capacity of 100 items.
+    public static func configuredProvider(withRootPersistenceURL persistenceURL: URL = FileManager.default.applicationSupportDirectoryURL, memoryCacheCapacity: CacheCapacity = .limited(numberOfItems: 100)) -> ItemProvider {
+        let memoryCache = MemoryCache(capacity: memoryCacheCapacity)
         let diskCache = DiskCache(rootDirectoryURL: persistenceURL)
-        let persister = Persister(memoryCache: MemoryCache(capacity: cacheCapacity), diskCache: diskCache)
+        let persister = Persister(memoryCache: memoryCache, diskCache: diskCache)
         
         return ItemProvider(networkRequestPerformer: NetworkController(), cache: persister, defaultProviderBehaviors: [])
     }
 }
 
 extension FileManager {
-    public var documentDirectoryURL: URL! { //swiftlint:disable:this implicitly_unwrapped_optional
-        return urls(for: .documentDirectory, in: .userDomainMask).first
+    public var applicationSupportDirectoryURL: URL! { //swiftlint:disable:this implicitly_unwrapped_optional
+        return urls(for: .applicationSupportDirectory, in: .userDomainMask).first
     }
 }
 

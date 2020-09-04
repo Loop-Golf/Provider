@@ -24,6 +24,6 @@ public enum ProviderError: Error {
     /// - Parameter error: The error that occurred while decoding.
     case decodingError(_ error: Error)
     
-    /// There was no strong reference kept to the `ObjectProvider`.
-    case noStrongReferenceToObjectProvider
+    /// There was no strong reference kept to the `Provider`.
+    case noStrongReferenceToProvider
 }

@@ -19,7 +19,7 @@
 		4C6B41A524F9561300BE6D45 /* ProviderRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C6B419F24F9561300BE6D45 /* ProviderRequest.swift */; };
 		4C6B41A624F9561300BE6D45 /* ProviderBehavior.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C6B41A024F9561300BE6D45 /* ProviderBehavior.swift */; };
 		4C6B41A724F9561300BE6D45 /* Identifiable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C6B41A124F9561300BE6D45 /* Identifiable.swift */; };
-		4C6B41A824F9561300BE6D45 /* ObjectProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C6B41A224F9561300BE6D45 /* ObjectProvider.swift */; };
+		4C6B41A824F9561300BE6D45 /* ItemProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C6B41A224F9561300BE6D45 /* ItemProvider.swift */; };
 		4C6B41A924F9561300BE6D45 /* ProviderError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C6B41A324F9561300BE6D45 /* ProviderError.swift */; };
 		4CC4416324E6F7EB00F48427 /* Networking in Frameworks */ = {isa = PBXBuildFile; productRef = 4CC4416224E6F7EB00F48427 /* Networking */; };
 /* End PBXBuildFile section */
@@ -50,7 +50,7 @@
 		4C6B419F24F9561300BE6D45 /* ProviderRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProviderRequest.swift; sourceTree = "<group>"; };
 		4C6B41A024F9561300BE6D45 /* ProviderBehavior.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProviderBehavior.swift; sourceTree = "<group>"; };
 		4C6B41A124F9561300BE6D45 /* Identifiable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Identifiable.swift; sourceTree = "<group>"; };
-		4C6B41A224F9561300BE6D45 /* ObjectProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObjectProvider.swift; sourceTree = "<group>"; };
+		4C6B41A224F9561300BE6D45 /* ItemProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ItemProvider.swift; sourceTree = "<group>"; };
 		4C6B41A324F9561300BE6D45 /* ProviderError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProviderError.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -139,7 +139,7 @@
 				4C6B419E24F9561300BE6D45 /* Provider.swift */,
 				4C6B419F24F9561300BE6D45 /* ProviderRequest.swift */,
 				4C6B41A124F9561300BE6D45 /* Identifiable.swift */,
-				4C6B41A224F9561300BE6D45 /* ObjectProvider.swift */,
+				4C6B41A224F9561300BE6D45 /* ItemProvider.swift */,
 				4C6B41A324F9561300BE6D45 /* ProviderError.swift */,
 			);
 			path = Provider;
@@ -263,7 +263,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4C6B41A624F9561300BE6D45 /* ProviderBehavior.swift in Sources */,
-				4C6B41A824F9561300BE6D45 /* ObjectProvider.swift in Sources */,
+				4C6B41A824F9561300BE6D45 /* ItemProvider.swift in Sources */,
 				4C6B41A424F9561300BE6D45 /* Provider.swift in Sources */,
 				4C6B41A924F9561300BE6D45 /* ProviderError.swift in Sources */,
 				4C04A60624E6EEBA00D73E0E /* AppDelegate.swift in Sources */,

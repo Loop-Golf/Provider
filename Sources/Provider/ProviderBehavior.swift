@@ -17,7 +17,7 @@ public protocol ProviderBehavior {
     
     /// Called when the provider request has completed and an item has been provided.
     /// - Parameters:
-    ///   - object: The requested item.
+    ///   - item: The requested item.
     ///   - request: The request that was performed to retrieve the item.
     func providerDidProvide<T: Codable>(item: T, forRequest request: ProviderRequest)
 }

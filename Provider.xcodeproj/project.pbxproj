@@ -25,6 +25,8 @@
 		F27A5793250BF23900FBAD8F /* OHHTTPStubsSwift in Frameworks */ = {isa = PBXBuildFile; productRef = F27A5792250BF23900FBAD8F /* OHHTTPStubsSwift */; };
 		F27A5799250BF6A300FBAD8F /* Item.json in Resources */ = {isa = PBXBuildFile; fileRef = F27A5794250BF32B00FBAD8F /* Item.json */; };
 		F27A579A250BF6A500FBAD8F /* Items.json in Resources */ = {isa = PBXBuildFile; fileRef = F27A5797250BF38000FBAD8F /* Items.json */; };
+		F27A579F250BF73900FBAD8F /* InvalidItem.json in Resources */ = {isa = PBXBuildFile; fileRef = F27A579C250BF6FE00FBAD8F /* InvalidItem.json */; };
+		F27A57A0250BF73C00FBAD8F /* InvalidItems.json in Resources */ = {isa = PBXBuildFile; fileRef = F27A579B250BF6FE00FBAD8F /* InvalidItems.json */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,6 +59,8 @@
 		4C6B41A324F9561300BE6D45 /* ProviderError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProviderError.swift; sourceTree = "<group>"; };
 		F27A5794250BF32B00FBAD8F /* Item.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Item.json; sourceTree = "<group>"; };
 		F27A5797250BF38000FBAD8F /* Items.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Items.json; sourceTree = "<group>"; };
+		F27A579B250BF6FE00FBAD8F /* InvalidItems.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = InvalidItems.json; sourceTree = "<group>"; };
+		F27A579C250BF6FE00FBAD8F /* InvalidItem.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = InvalidItem.json; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -165,6 +169,8 @@
 			children = (
 				F27A5794250BF32B00FBAD8F /* Item.json */,
 				F27A5797250BF38000FBAD8F /* Items.json */,
+				F27A579C250BF6FE00FBAD8F /* InvalidItem.json */,
+				F27A579B250BF6FE00FBAD8F /* InvalidItems.json */,
 			);
 			path = "Test JSON";
 			sourceTree = "<group>";
@@ -273,6 +279,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				F27A579A250BF6A500FBAD8F /* Items.json in Resources */,
+				F27A579F250BF73900FBAD8F /* InvalidItem.json in Resources */,
+				F27A57A0250BF73C00FBAD8F /* InvalidItems.json in Resources */,
 				F27A5799250BF6A300FBAD8F /* Item.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

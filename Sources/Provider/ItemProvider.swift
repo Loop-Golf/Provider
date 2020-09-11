@@ -13,8 +13,13 @@ import Persister
 
 /// Retrieves items from persistence or networking and stores them in persistence.
 public final class ItemProvider {
-    private let networkRequestPerformer: NetworkRequestPerformer
-    private let cache: Cache?
+    
+    /// Performs network requests when items cannot be retrieved from persistence.
+    public let networkRequestPerformer: NetworkRequestPerformer
+    
+    /// The cache used to persist / recall previously retrieved items.
+    public let cache: Cache?
+    
     private let defaultProviderBehaviors: [ProviderBehavior]
     private let providerQueue = DispatchQueue(label: "ProviderQueue", attributes: .concurrent)
     

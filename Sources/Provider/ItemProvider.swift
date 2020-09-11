@@ -34,7 +34,7 @@ extension ItemProvider: Provider {
     
     // MARK: - Provider
     
-    public func provide<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], completionQueue: DispatchQueue, completion: @escaping (Result<Item, ProviderError>) -> Void) {
+    public func provide<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], completionQueue: DispatchQueue, completion: @escaping (Result<Item, ProviderError>) -> Void) {
         providerQueue.async { [weak self] in
             guard let self = self else {
                 completion(.failure(ProviderError.noStrongReferenceToProvider))
@@ -112,7 +112,7 @@ extension ItemProvider: Provider {
         }
     }
         
-    public func provide<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior]) -> AnyPublisher<Item, ProviderError> {
+    public func provide<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior]) -> AnyPublisher<Item, ProviderError> {
         
         return Just<Item?>(try? self.cache?.read(forKey: request.persistenceKey))
             .setFailureType(to: ProviderError.self)
@@ -143,7 +143,7 @@ extension ItemProvider: Provider {
             .eraseToAnyPublisher()
     }
     
-    public func provideItems<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior]) -> AnyPublisher<[Item], ProviderError> {
+    public func provideItems<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior]) -> AnyPublisher<[Item], ProviderError> {
         
         return Just<[Item]?>(self.cache?.readItems(forKey: request.persistenceKey))
             .setFailureType(to: ProviderError.self)

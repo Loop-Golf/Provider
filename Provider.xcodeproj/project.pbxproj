@@ -22,6 +22,9 @@
 		4C6B41A824F9561300BE6D45 /* ItemProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C6B41A224F9561300BE6D45 /* ItemProvider.swift */; };
 		4C6B41A924F9561300BE6D45 /* ProviderError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C6B41A324F9561300BE6D45 /* ProviderError.swift */; };
 		4CC4416324E6F7EB00F48427 /* Networking in Frameworks */ = {isa = PBXBuildFile; productRef = 4CC4416224E6F7EB00F48427 /* Networking */; };
+		F27A5793250BF23900FBAD8F /* OHHTTPStubsSwift in Frameworks */ = {isa = PBXBuildFile; productRef = F27A5792250BF23900FBAD8F /* OHHTTPStubsSwift */; };
+		F27A5795250BF32B00FBAD8F /* Item.json in Resources */ = {isa = PBXBuildFile; fileRef = F27A5794250BF32B00FBAD8F /* Item.json */; };
+		F27A5798250BF38000FBAD8F /* Items.json in Resources */ = {isa = PBXBuildFile; fileRef = F27A5797250BF38000FBAD8F /* Items.json */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -52,6 +55,8 @@
 		4C6B41A124F9561300BE6D45 /* Identifiable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Identifiable.swift; sourceTree = "<group>"; };
 		4C6B41A224F9561300BE6D45 /* ItemProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ItemProvider.swift; sourceTree = "<group>"; };
 		4C6B41A324F9561300BE6D45 /* ProviderError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProviderError.swift; sourceTree = "<group>"; };
+		F27A5794250BF32B00FBAD8F /* Item.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Item.json; sourceTree = "<group>"; };
+		F27A5797250BF38000FBAD8F /* Items.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Items.json; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -68,6 +73,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F27A5793250BF23900FBAD8F /* OHHTTPStubsSwift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -104,6 +110,7 @@
 		4C04A61B24E6EEBC00D73E0E /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				F27A5796250BF32D00FBAD8F /* Test JSON */,
 				4C04A61C24E6EEBC00D73E0E /* ItemProviderTests.swift */,
 				4C04A61E24E6EEBC00D73E0E /* Info.plist */,
 			);
@@ -153,6 +160,15 @@
 			path = Provider;
 			sourceTree = "<group>";
 		};
+		F27A5796250BF32D00FBAD8F /* Test JSON */ = {
+			isa = PBXGroup;
+			children = (
+				F27A5794250BF32B00FBAD8F /* Item.json */,
+				F27A5797250BF38000FBAD8F /* Items.json */,
+			);
+			path = "Test JSON";
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -191,6 +207,9 @@
 				4C04A61A24E6EEBC00D73E0E /* PBXTargetDependency */,
 			);
 			name = ProviderTests;
+			packageProductDependencies = (
+				F27A5792250BF23900FBAD8F /* OHHTTPStubsSwift */,
+			);
 			productName = ProviderTests;
 			productReference = 4C04A61824E6EEBC00D73E0E /* ProviderTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -226,6 +245,7 @@
 			packageReferences = (
 				4CC4416124E6F7EB00F48427 /* XCRemoteSwiftPackageReference "Networking" */,
 				4C0A30A824E7174200E80753 /* XCRemoteSwiftPackageReference "Persister" */,
+				F27A5791250BF23900FBAD8F /* XCRemoteSwiftPackageReference "OHHTTPStubs" */,
 			);
 			productRefGroup = 4C04A60324E6EEBA00D73E0E /* Products */;
 			projectDirPath = "";
@@ -242,6 +262,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F27A5798250BF38000FBAD8F /* Items.json in Resources */,
+				F27A5795250BF32B00FBAD8F /* Item.json in Resources */,
 				4C04A61224E6EEBC00D73E0E /* LaunchScreen.storyboard in Resources */,
 				4C04A60F24E6EEBC00D73E0E /* Preview Assets.xcassets in Resources */,
 				4C04A60C24E6EEBC00D73E0E /* Assets.xcassets in Resources */,
@@ -551,6 +573,14 @@
 				kind = branch;
 			};
 		};
+		F27A5791250BF23900FBAD8F /* XCRemoteSwiftPackageReference "OHHTTPStubs" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/AliSoftware/OHHTTPStubs.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 9.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -563,6 +593,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 4CC4416124E6F7EB00F48427 /* XCRemoteSwiftPackageReference "Networking" */;
 			productName = Networking;
+		};
+		F27A5792250BF23900FBAD8F /* OHHTTPStubsSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F27A5791250BF23900FBAD8F /* XCRemoteSwiftPackageReference "OHHTTPStubs" */;
+			productName = OHHTTPStubsSwift;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

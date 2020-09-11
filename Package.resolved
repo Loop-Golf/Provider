@@ -1,0 +1,25 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "Networking",
+        "repositoryURL": "https://github.com/Lickability/Networking",
+        "state": {
+          "branch": "main",
+          "revision": "33745f3dc8c5db31d197ae2c891ebac09bde51a8",
+          "version": null
+        }
+      },
+      {
+        "package": "Persister",
+        "repositoryURL": "https://github.com/Lickability/Persister",
+        "state": {
+          "branch": "main",
+          "revision": "e2c48a5550d4f2a5601d25018cb75030439363af",
+          "version": null
+        }
+      }
+    ]
+  },
+  "version": 1
+}

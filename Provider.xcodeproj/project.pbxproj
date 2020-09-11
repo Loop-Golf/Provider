@@ -23,8 +23,8 @@
 		4C6B41A924F9561300BE6D45 /* ProviderError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C6B41A324F9561300BE6D45 /* ProviderError.swift */; };
 		4CC4416324E6F7EB00F48427 /* Networking in Frameworks */ = {isa = PBXBuildFile; productRef = 4CC4416224E6F7EB00F48427 /* Networking */; };
 		F27A5793250BF23900FBAD8F /* OHHTTPStubsSwift in Frameworks */ = {isa = PBXBuildFile; productRef = F27A5792250BF23900FBAD8F /* OHHTTPStubsSwift */; };
-		F27A5795250BF32B00FBAD8F /* Item.json in Resources */ = {isa = PBXBuildFile; fileRef = F27A5794250BF32B00FBAD8F /* Item.json */; };
-		F27A5798250BF38000FBAD8F /* Items.json in Resources */ = {isa = PBXBuildFile; fileRef = F27A5797250BF38000FBAD8F /* Items.json */; };
+		F27A5799250BF6A300FBAD8F /* Item.json in Resources */ = {isa = PBXBuildFile; fileRef = F27A5794250BF32B00FBAD8F /* Item.json */; };
+		F27A579A250BF6A500FBAD8F /* Items.json in Resources */ = {isa = PBXBuildFile; fileRef = F27A5797250BF38000FBAD8F /* Items.json */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -262,8 +262,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F27A5798250BF38000FBAD8F /* Items.json in Resources */,
-				F27A5795250BF32B00FBAD8F /* Item.json in Resources */,
 				4C04A61224E6EEBC00D73E0E /* LaunchScreen.storyboard in Resources */,
 				4C04A60F24E6EEBC00D73E0E /* Preview Assets.xcassets in Resources */,
 				4C04A60C24E6EEBC00D73E0E /* Assets.xcassets in Resources */,
@@ -274,6 +272,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F27A579A250BF6A500FBAD8F /* Items.json in Resources */,
+				F27A5799250BF6A300FBAD8F /* Item.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

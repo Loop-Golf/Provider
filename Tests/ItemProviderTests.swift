@@ -8,6 +8,7 @@
 
 import Combine
 import XCTest
+import OHHTTPStubs
 import OHHTTPStubsSwift
 
 @testable import Provider
@@ -17,12 +18,10 @@ class ItemProviderTests: XCTestCase {
     private let provider = ItemProvider.configuredProvider(withRootPersistenceURL: FileManager.default.cachesDirectoryURL, memoryCacheCapacity: .unlimited)
     private var cancellables = Set<AnyCancellable>()
     
-    override func setUp() {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-    }
-
     override func tearDown() {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+        HTTPStubs.removeAllStubs()
+        
+        super.tearDown()
     }
 
     func testProvideItem() {
@@ -31,7 +30,7 @@ class ItemProviderTests: XCTestCase {
         let expectation = self.expectation(description: "The item will exist.")
         
         stub(condition: { _ in true }) { _ in
-            fixture(filePath: Bundle.main.path(forResource: "Item", ofType: "json")!, headers: nil)
+            fixture(filePath: OHPathForFile("Item.json", type(of: self))!, headers: nil)
         }
         
         provider.provide(request: request, providerBehaviors: [], requestBehaviors: [], completionQueue: .main) { (result: Result<TestItem, ProviderError>) in
@@ -53,7 +52,7 @@ class ItemProviderTests: XCTestCase {
         let expectation = self.expectation(description: "The items will exist.")
         
         stub(condition: { _ in true }) { _ in
-            fixture(filePath: Bundle.main.path(forResource: "Items", ofType: "json")!, headers: nil)
+            fixture(filePath: OHPathForFile("Items.json", type(of: self))!, headers: nil)
         }
         
         provider.provideItems(request: request, providerBehaviors: [], requestBehaviors: [], completionQueue: .main) { (result: Result<[TestItem], ProviderError>) in
@@ -76,7 +75,7 @@ class ItemProviderTests: XCTestCase {
         let expectation = self.expectation(description: "The item will exist.")
         
         stub(condition: { _ in true }) { _ in
-            fixture(filePath: Bundle.main.path(forResource: "Item", ofType: "json")!, headers: nil)
+            fixture(filePath: OHPathForFile("Item.json", type(of: self))!, headers: nil)
         }
         
         provider.provide(request: request, providerBehaviors: [], requestBehaviors: [])
@@ -96,7 +95,7 @@ class ItemProviderTests: XCTestCase {
         let expectation = self.expectation(description: "The item will exist.")
         
         stub(condition: { _ in true }) { _ in
-            fixture(filePath: Bundle.main.path(forResource: "Items", ofType: "json")!, headers: nil)
+            fixture(filePath: OHPathForFile("Items.json", type(of: self))!, headers: nil)
         }
         
         provider.provideItems(request: request, providerBehaviors: [], requestBehaviors: [])

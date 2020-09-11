@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Combine
 import Networking
 import Persister
 
@@ -35,4 +36,20 @@ public protocol Provider {
     ///   - completionQueue: The queue on which to call the completion handler.
     ///   - completion: The closure called upon completing the request that provides the desired items or the error that occurred when attempting to retrieve them.
     func provideItems<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], completionQueue: DispatchQueue, completion: @escaping (Result<[Item], ProviderError>) -> Void)
+    
+    /// Produces a publisher which, when subscribed to, attempts to retrieve an item using the provided request, checking persistence first where possible and falling back to the network. If the network is used, the item will be persisted upon success.
+    /// - Parameters:
+    ///   - request: The request that provides the details needed to retrieve the items from persistence or networking.
+    ///   - decoder: The decoder used to convert network response data into an array of the type specified by the generic placeholder.
+    ///   - providerBehaviors: Actions to perform before the provider request is performed and / or after the provider request is completed.
+    ///   - requestBehaviors: Actions to perform before the network request is performed and / or after the network request is completed. Only called if the items weren’t successfully retrieved from persistence.
+    func provide<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior]) -> AnyPublisher<Item, ProviderError>
+    
+    /// Produces a publisher which, when subscribed to, attempts to retrieve an array of items using the provided request, checking persistence first where possible and falling back to the network. If the network is used, the items will be persisted upon success.
+    /// - Parameters:
+    ///   - request: The request that provides the details needed to retrieve the items from persistence or networking.
+    ///   - decoder: The decoder used to convert network response data into an array of the type specified by the generic placeholder.
+    ///   - providerBehaviors: Actions to perform before the provider request is performed and / or after the provider request is completed.
+    ///   - requestBehaviors: Actions to perform before the network request is performed and / or after the network request is completed. Only called if the items weren’t successfully retrieved from persistence.
+    func provideItems<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior]) -> AnyPublisher<[Item], ProviderError>
 }

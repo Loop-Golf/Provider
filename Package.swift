@@ -18,5 +18,5 @@ let package = Package(
             .branch("main")
         )
     ],
-    targets: [.target(name: name)]
+    targets: [.target(name: name, dependencies: ["Networking", "Persister"])]
 )

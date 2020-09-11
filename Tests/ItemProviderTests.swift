@@ -1,5 +1,5 @@
 //
-//  ProviderTests.swift
+//  ItemProviderTests.swift
 //  ProviderTests
 //
 //  Created by Michael Liberatore on 8/14/20.
@@ -9,7 +9,7 @@
 import XCTest
 @testable import Provider
 
-class ProviderTests: XCTestCase {
+class ItemProviderTests: XCTestCase {
 
     override func setUp() {
         // Put setup code here. This method is called before the invocation of each test method in the class.

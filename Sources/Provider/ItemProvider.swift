@@ -119,24 +119,28 @@ extension ItemProvider: Provider {
         
     public func provide<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior]) -> AnyPublisher<Item, ProviderError> {
         
-        return Just<Item?>(try? self.cache?.read(forKey: request.persistenceKey))
+        let cachePublisher = Just<Item?>(try? self.cache?.read(forKey: request.persistenceKey))
             .setFailureType(to: ProviderError.self)
+        
+        let networkPublisher = networkRequestPerformer.send(request, requestBehaviors: requestBehaviors)
+            .mapError { ProviderError.networkError($0) }
+            .tryCompactMap { $0.data }
+            .mapError { _ in ProviderError.networkError(.noData) }
+            .tryMap { try decoder.decode(Item.self, from: $0) }
+            .mapError { ProviderError.decodingError($0) }
+            .handleEvents(receiveOutput: { [weak self] item in
+                try? self?.cache?.write(item: item, forKey: request.persistenceKey)
+            })
+            .eraseToAnyPublisher()
+        
+        return cachePublisher
             .flatMap { item -> AnyPublisher<Item, ProviderError> in
                 if let item = item {
                     return Just(item)
                         .setFailureType(to: ProviderError.self)
                         .eraseToAnyPublisher()
                 } else {
-                    return self.networkRequestPerformer.send(request, requestBehaviors: requestBehaviors)
-                        .mapError { ProviderError.networkError($0) }
-                        .tryCompactMap { $0.data }
-                        .mapError { _ in ProviderError.networkError(.noData) }
-                        .tryMap { try decoder.decode(Item.self, from: $0) }
-                        .mapError { ProviderError.decodingError($0) }
-                        .handleEvents(receiveOutput: { [weak self] item in
-                            try? self?.cache?.write(item: item, forKey: request.persistenceKey)
-                        })
-                        .eraseToAnyPublisher()
+                    return networkPublisher
                 }
             }
             .handleEvents(receiveSubscription: { _ in
@@ -150,24 +154,28 @@ extension ItemProvider: Provider {
     
     public func provideItems<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior]) -> AnyPublisher<[Item], ProviderError> {
         
-        return Just<[Item]?>(self.cache?.readItems(forKey: request.persistenceKey))
+        let cachePublisher = Just<[Item]?>(self.cache?.readItems(forKey: request.persistenceKey))
             .setFailureType(to: ProviderError.self)
+        
+        let networkPublisher = networkRequestPerformer.send(request, requestBehaviors: requestBehaviors)
+            .mapError { ProviderError.networkError($0) }
+            .tryCompactMap { $0.data }
+            .mapError { _ in ProviderError.networkError(.noData) }
+            .tryMap { try decoder.decode([Item].self, from: $0) }
+            .mapError { ProviderError.decodingError($0) }
+            .handleEvents(receiveOutput: { [weak self] items in
+                self?.cache?.writeItems(items, forKey: request.persistenceKey)
+            })
+            .eraseToAnyPublisher()
+        
+        return cachePublisher
             .flatMap { items -> AnyPublisher<[Item], ProviderError> in
                 if let items = items {
                     return Just(items)
                         .setFailureType(to: ProviderError.self)
                         .eraseToAnyPublisher()
                 } else {
-                    return self.networkRequestPerformer.send(request, requestBehaviors: requestBehaviors)
-                        .mapError { ProviderError.networkError($0) }
-                        .tryCompactMap { $0.data }
-                        .mapError { _ in ProviderError.networkError(.noData) }
-                        .tryMap { try decoder.decode([Item].self, from: $0) }
-                        .mapError { ProviderError.decodingError($0) }
-                        .handleEvents(receiveOutput: { [weak self] items in
-                            self?.cache?.writeItems(items, forKey: request.persistenceKey)
-                        })
-                        .eraseToAnyPublisher()
+                    return networkPublisher
                 }
             }
             .handleEvents(receiveSubscription: { _ in

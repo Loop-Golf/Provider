@@ -25,7 +25,7 @@
   ],
   "source_files": "Sources/Provider/**/*",
   "dependencies": { 
-	  "Persister": [],
-	  "Networking": []
+	  "Persister": ["0.1.0"],
+	  "Networking": ["0.1.0"]
    }
 }

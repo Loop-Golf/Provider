@@ -23,8 +23,8 @@
         "package": "Persister",
         "repositoryURL": "https://github.com/Lickability/Persister",
         "state": {
-          "branch": "main",
-          "revision": "a7f364e55f2e680bff760f1680bf7f988d99c623",
+          "branch": "feature/item-container",
+          "revision": "8ffeac55a4b47376e88ae7a14d77ad4744269fe1",
           "version": null
         }
       }

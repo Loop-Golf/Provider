@@ -569,7 +569,7 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Lickability/Persister";
 			requirement = {
-				branch = main;
+				branch = "feature/item-container";
 				kind = branch;
 			};
 		};

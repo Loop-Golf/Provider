@@ -28,7 +28,7 @@ public final class ItemProvider {
     ///   - networkRequestPerformer: Performs network requests when items cannot be retrieved from persistence.
     ///   - cache: The cache used to persist / recall previously retrieved items.
     ///   - defaultProviderBehaviors: Actions to perform before _every_ provider request is performed and / or after _every_ provider request is completed.
-    public init(networkRequestPerformer: NetworkRequestPerformer, cache: Cache?, defaultProviderBehaviors: [ProviderBehavior]) {
+    public init(networkRequestPerformer: NetworkRequestPerformer, cache: Cache?, defaultProviderBehaviors: [ProviderBehavior] = []) {
         self.networkRequestPerformer = networkRequestPerformer
         self.cache = cache
         self.defaultProviderBehaviors = defaultProviderBehaviors
@@ -39,7 +39,7 @@ extension ItemProvider: Provider {
     
     // MARK: - Provider
     
-    public func provide<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], completionQueue: DispatchQueue, expiredItemCompletion: ((Result<Item, Never>) -> Void)? = nil, completion: @escaping (Result<Item, ProviderError>) -> Void) {
+    public func provide<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], completionQueue: DispatchQueue = .main, expiredItemCompletion: ((Result<Item, Never>) -> Void)? = nil, completion: @escaping (Result<Item, ProviderError>) -> Void) {
         providerQueue.async { [weak self] in
             guard let self = self else {
                 completionQueue.async { completion(.failure(ProviderError.noStrongReferenceToProvider)) }
@@ -53,6 +53,7 @@ extension ItemProvider: Provider {
                 if cachedContainer.expirationDate < Date() {
                     if let expiredCompletion = expiredItemCompletion {
                         completionQueue.async { expiredCompletion(.success(cachedContainer.item)) }
+                        providerBehaviors.providerDidProvide(item: cachedContainer.item, forRequest: request)
                     }
                 } else {
                     completionQueue.async { completion(.success(cachedContainer.item)) }
@@ -101,6 +102,7 @@ extension ItemProvider: Provider {
                 if isExpired {
                     if let expiredCompletion = expiredItemsCompletion {
                         completionQueue.async { expiredCompletion(.success(items)) }
+                        providerBehaviors.providerDidProvide(item: items, forRequest: request)
                     }
                 } else {
                     completionQueue.async { completion(.success(items)) }
@@ -132,11 +134,10 @@ extension ItemProvider: Provider {
         }
     }
         
-    public func provide<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], allowExpiredItem: Bool = false) -> AnyPublisher<Item, ProviderError> {
+    public func provide<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], allowExpiredItem: Bool = false) -> AnyPublisher<Item, ProviderError> {
         
         let cachePublisher = Just<ItemContainer<Item>?>(try? self.cache?.read(forKey: request.persistenceKey))
             .setFailureType(to: ProviderError.self)
-            .eraseToAnyPublisher()
         
         let networkPublisher = networkRequestPerformer.send(request, requestBehaviors: requestBehaviors)
             .mapError { ProviderError.networkError($0) }
@@ -180,7 +181,7 @@ extension ItemProvider: Provider {
                 .eraseToAnyPublisher()
     }
     
-    public func provideItems<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], allowExpiredItems: Bool = false) -> AnyPublisher<[Item], ProviderError> {
+    public func provideItems<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], allowExpiredItems: Bool = false) -> AnyPublisher<[Item], ProviderError> {
         
         let cachePublisher = Just<[ItemContainer<Item>]?>(self.cache?.readItems(forKey: request.persistenceKey))
             .setFailureType(to: ProviderError.self)
@@ -194,6 +195,7 @@ extension ItemProvider: Provider {
             .handleEvents(receiveOutput: { [weak self] items in
                 self?.cache?.writeItems(items, forKey: request.persistenceKey)
             })
+            .print()
             .eraseToAnyPublisher()
         
         let providerPublisher = cachePublisher

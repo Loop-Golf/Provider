@@ -39,10 +39,10 @@ extension ItemProvider: Provider {
     
     // MARK: - Provider
     
-    public func provide<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], completionQueue: DispatchQueue, completion: @escaping (Result<Item, ProviderError>) -> Void) {
+    public func provide<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], completionQueue: DispatchQueue, expiredItemCompletion: ((Result<Item, Never>) -> Void)? = nil, completion: @escaping (Result<Item, ProviderError>) -> Void) {
         providerQueue.async { [weak self] in
             guard let self = self else {
-                completion(.failure(ProviderError.noStrongReferenceToProvider))
+                completionQueue.async { completion(.failure(ProviderError.noStrongReferenceToProvider)) }
                 return
             }
             
@@ -50,38 +50,44 @@ extension ItemProvider: Provider {
             providerBehaviors.providerWillProvide(forRequest: request)
             
             if let cachedContainer: ItemContainer<Item> = try? self.cache?.read(forKey: request.persistenceKey) {
-                completionQueue.async { completion(.success(cachedContainer.item)) }
-                
-                providerBehaviors.providerDidProvide(item: cachedContainer.item, forRequest: request)
-            } else {
-                self.networkRequestPerformer.send(request, requestBehaviors: requestBehaviors) { [weak self] (result: Result<NetworkResponse, NetworkError>) in
-                    switch result {
-                    case let .success(response):
-                        if let data = response.data {
-                            do {
-                                let item = try decoder.decode(Item.self, from: data)
-                                try self?.cache?.write(item: item, forKey: request.persistenceKey)
-                                completionQueue.async { completion(.success(item)) }
-                                
-                                providerBehaviors.providerDidProvide(item: item, forRequest: request)
-                            } catch {
-                                completionQueue.async { completion(.failure(ProviderError.decodingError(error))) }
-                            }
-                        } else {
-                            completionQueue.async { completion(.failure(.networkError(.noData)))}
-                        }
-                    case let .failure(error):
-                        completionQueue.async { completion(.failure(.networkError(error))) }
+                if cachedContainer.expirationDate < Date() {
+                    if let expiredCompletion = expiredItemCompletion {
+                        completionQueue.async { expiredCompletion(.success(cachedContainer.item)) }
                     }
+                } else {
+                    completionQueue.async { completion(.success(cachedContainer.item)) }
+                    providerBehaviors.providerDidProvide(item: cachedContainer.item, forRequest: request)
+                    return
+                }
+            }
+            
+            self.networkRequestPerformer.send(request, requestBehaviors: requestBehaviors) { [weak self] (result: Result<NetworkResponse, NetworkError>) in
+                switch result {
+                case let .success(response):
+                    if let data = response.data {
+                        do {
+                            let item = try decoder.decode(Item.self, from: data)
+                            try self?.cache?.write(item: item, forKey: request.persistenceKey)
+                            completionQueue.async { completion(.success(item)) }
+                            
+                            providerBehaviors.providerDidProvide(item: item, forRequest: request)
+                        } catch {
+                            completionQueue.async { completion(.failure(ProviderError.decodingError(error))) }
+                        }
+                    } else {
+                        completionQueue.async { completion(.failure(.networkError(.noData)))}
+                    }
+                case let .failure(error):
+                    completionQueue.async { completion(.failure(.networkError(error))) }
                 }
             }
         }
     }
     
-    public func provideItems<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], completionQueue: DispatchQueue = .main, completion: @escaping (Result<[Item], ProviderError>) -> Void) {
+    public func provideItems<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], completionQueue: DispatchQueue = .main, expiredItemsCompletion: ((Result<[Item], Never>) -> Void)? = nil, completion: @escaping (Result<[Item], ProviderError>) -> Void) {
         providerQueue.async { [weak self] in
             guard let self = self else {
-                completion(.failure(ProviderError.noStrongReferenceToProvider))
+                completionQueue.async { completion(.failure(ProviderError.noStrongReferenceToProvider)) }
                 return
             }
             
@@ -89,38 +95,48 @@ extension ItemProvider: Provider {
             providerBehaviors.providerWillProvide(forRequest: request)
             
             if let cachedItems: [ItemContainer<Item>] = self.cache?.readItems(forKey: request.persistenceKey), !cachedItems.isEmpty {
-                completionQueue.async { completion(.success(cachedItems.map { $0.item })) }
-                
-                providerBehaviors.providerDidProvide(item: cachedItems.map { $0.item }, forRequest: request)
-            } else {
-                self.networkRequestPerformer.send(request, requestBehaviors: requestBehaviors) { [weak self] (result: Result<NetworkResponse, NetworkError>) in
-                    switch result {
-                    case let .success(response):
-                        if let data = response.data {
-                            do {
-                                let items = try decoder.decode([Item].self, from: data)
-                                self?.cache?.writeItems(items, forKey: request.persistenceKey)
-                                completionQueue.async { completion(.success(items)) }
-                                
-                                providerBehaviors.providerDidProvide(item: items, forRequest: request)
-                            } catch {
-                                completionQueue.async { completion(.failure(ProviderError.decodingError(error))) }
-                            }
-                        } else {
-                            completionQueue.async { completion(.failure(.networkError(.noData))) }
-                        }
-                    case let .failure(error):
-                        completionQueue.async { completion(.failure(.networkError(error))) }
+                let items = cachedItems.map { $0.item }
+                let isExpired = cachedItems.contains { $0.expirationDate < Date() }
+
+                if isExpired {
+                    if let expiredCompletion = expiredItemsCompletion {
+                        completionQueue.async { expiredCompletion(.success(items)) }
                     }
+                } else {
+                    completionQueue.async { completion(.success(items)) }
+                    providerBehaviors.providerDidProvide(item: items, forRequest: request)
+                    return
+                }
+            }
+            
+            self.networkRequestPerformer.send(request, requestBehaviors: requestBehaviors) { [weak self] (result: Result<NetworkResponse, NetworkError>) in
+                switch result {
+                case let .success(response):
+                    if let data = response.data {
+                        do {
+                            let items = try decoder.decode([Item].self, from: data)
+                            self?.cache?.writeItems(items, forKey: request.persistenceKey)
+                            completionQueue.async { completion(.success(items)) }
+                            
+                            providerBehaviors.providerDidProvide(item: items, forRequest: request)
+                        } catch {
+                            completionQueue.async { completion(.failure(ProviderError.decodingError(error))) }
+                        }
+                    } else {
+                        completionQueue.async { completion(.failure(.networkError(.noData))) }
+                    }
+                case let .failure(error):
+                    completionQueue.async { completion(.failure(.networkError(error))) }
                 }
             }
         }
     }
         
-    public func provide<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior]) -> AnyPublisher<Item, ProviderError> {
+    public func provide<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], allowExpiredItem: Bool = false) -> AnyPublisher<Item, ProviderError> {
         
         let cachePublisher = Just<ItemContainer<Item>?>(try? self.cache?.read(forKey: request.persistenceKey))
             .setFailureType(to: ProviderError.self)
+            .eraseToAnyPublisher()
         
         let networkPublisher = networkRequestPerformer.send(request, requestBehaviors: requestBehaviors)
             .mapError { ProviderError.networkError($0) }
@@ -131,9 +147,9 @@ extension ItemProvider: Provider {
             .handleEvents(receiveOutput: { [weak self] item in
                 try? self?.cache?.write(item: item, forKey: request.persistenceKey)
             })
+            .eraseToAnyPublisher()
         
-        let allowExpired = true
-                
+        
         let providerPublisher = cachePublisher
             .flatMap { item -> AnyPublisher<Item, ProviderError> in
                 if let item = item {
@@ -141,28 +157,30 @@ extension ItemProvider: Provider {
                         .map { $0.item }
                         .setFailureType(to: ProviderError.self)
                         .eraseToAnyPublisher()
-                    
-                    if allowExpired {
+                                        
+                    if let expiration = item.expirationDate, expiration >= Date() {
+                        return itemPublisher
+                    } else if allowExpiredItem, let expiration = item.expirationDate, expiration < Date() {
                         return itemPublisher.merge(with: networkPublisher).eraseToAnyPublisher()
                     } else {
-                        return itemPublisher
+                        return networkPublisher
                     }
                 } else {
-                    return networkPublisher.eraseToAnyPublisher()
+                    return networkPublisher
                 }
             }
         
         return providerPublisher
-            .handleEvents(receiveSubscription: { _ in
-                providerBehaviors.providerWillProvide(forRequest: request)
-            }, receiveOutput: { item in
-                providerBehaviors.providerDidProvide(item: item, forRequest: request)
-            })
-            .subscribe(on: providerQueue)
-            .eraseToAnyPublisher()
+                .handleEvents(receiveSubscription: { _ in
+                    providerBehaviors.providerWillProvide(forRequest: request)
+                }, receiveOutput: { item in
+                    providerBehaviors.providerDidProvide(item: item, forRequest: request)
+                })
+                .subscribe(on: providerQueue)
+                .eraseToAnyPublisher()
     }
     
-    public func provideItems<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior]) -> AnyPublisher<[Item], ProviderError> {
+    public func provideItems<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], allowExpiredItems: Bool = false) -> AnyPublisher<[Item], ProviderError> {
         
         let cachePublisher = Just<[ItemContainer<Item>]?>(self.cache?.readItems(forKey: request.persistenceKey))
             .setFailureType(to: ProviderError.self)
@@ -178,23 +196,33 @@ extension ItemProvider: Provider {
             })
             .eraseToAnyPublisher()
         
-        return cachePublisher
+        let providerPublisher = cachePublisher
             .flatMap { items -> AnyPublisher<[Item], ProviderError> in
                 if let items = items {
-                    return Just(items.map { $0.item })
+                    let itemPublisher = Just(items.map { $0.item })
                         .setFailureType(to: ProviderError.self)
                         .eraseToAnyPublisher()
+                                        
+                    if let expiration = items.first?.expirationDate, expiration >= Date() {
+                        return itemPublisher
+                    } else if allowExpiredItems, let expiration = items.first?.expirationDate, expiration < Date() {
+                        return itemPublisher.merge(with: networkPublisher).eraseToAnyPublisher()
+                    } else {
+                        return networkPublisher
+                    }
                 } else {
                     return networkPublisher
                 }
             }
-            .handleEvents(receiveSubscription: { _ in
-                providerBehaviors.providerWillProvide(forRequest: request)
-            }, receiveOutput: { item in
-                providerBehaviors.providerDidProvide(item: item, forRequest: request)
-            })
-            .subscribe(on: providerQueue)
-            .eraseToAnyPublisher()
+
+        return providerPublisher
+                .handleEvents(receiveSubscription: { _ in
+                    providerBehaviors.providerWillProvide(forRequest: request)
+                }, receiveOutput: { item in
+                    providerBehaviors.providerDidProvide(item: item, forRequest: request)
+                })
+                .subscribe(on: providerQueue)
+                .eraseToAnyPublisher()
     }
 }
 
@@ -217,6 +245,14 @@ extension FileManager {
     public var applicationSupportDirectoryURL: URL! { //swiftlint:disable:this implicitly_unwrapped_optional
         return urls(for: .applicationSupportDirectory, in: .userDomainMask).first
     }
+}
+
+private func <(lhs: Date?, rhs: Date) -> Bool {
+    if let lhs = lhs {
+        return lhs < rhs
+    }
+    
+    return false
 }
 
 private extension Cache {

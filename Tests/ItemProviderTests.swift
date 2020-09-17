@@ -104,11 +104,11 @@ class ItemProviderTests: XCTestCase {
         }
         
         expiredProvider.provide(request: request) { (result: Result<TestItem, ProviderError>) in
-            self.expiredProvider.provide(request: request) { (result: Result<TestItem, Never>) in
+            self.expiredProvider.provide(request: request, expiredItemCompletion: { (result: Result<TestItem, Never>) in
                 expectation.fulfill()
-            } completion: { (result: Result<TestItem, ProviderError>) in
+            }, completion: { (result: Result<TestItem, ProviderError>) in
                 expectation.fulfill()
-            }
+            })
         }
         
         wait(for: [expectation], timeout: 2)
@@ -205,19 +205,91 @@ class ItemProviderTests: XCTestCase {
         }
 
         expiredProvider.provideItems(request: request) { (result: Result<[TestItem], ProviderError>) in
-            self.expiredProvider.provideItems(request: request) { (result: Result<[TestItem], Never>) in
-                switch result {
-                case let .success(items): XCTAssertEqual(items.count, 3)
-                case .failure: XCTFail("This should not have failed.")
-                }
-                
-                expectation.fulfill()
-            } completion: { (result: Result<[TestItem], ProviderError>) in
+            self.expiredProvider.provideItems(request: request, expiredItemsCompletion: { (result: Result<[TestItem], Never>) in
                 switch result {
                 case let .success(items): XCTAssertEqual(items.count, 3)
                 case .failure: XCTFail("This should not have failed.")
                 }
 
+                expectation.fulfill()
+            }, completion: { (result: Result<[TestItem], ProviderError>) in
+                switch result {
+                case let .success(items): XCTAssertEqual(items.count, 3)
+                case .failure: XCTFail("This should not have failed.")
+                }
+
+                expectation.fulfill()
+            })
+        }
+        
+        wait(for: [expectation], timeout: 2)
+    }
+
+    func testProvideItemsReturnsPartialResponseUponFailure() {
+        let request = TestProviderRequest()
+        let expectation = self.expectation(description: "The provider will return a partial response.")
+        
+        let originalStub = stub(condition: { _ in true }) { _ in
+            fixture(filePath: OHPathForFile("Items.json", type(of: self))!, headers: nil)
+        }
+
+        provider.provideItems(request: request) { (result: Result<[TestItem], ProviderError>) in
+            
+            try? self.provider.cache?.remove(forKey: "Hello 2")
+            HTTPStubs.removeStub(originalStub)
+            
+            stub(condition: { _ in true}) { _ in
+                fixture(filePath: OHPathForFile("Item.json", type(of: self))!, status: 404, headers: nil)
+            }
+            
+            self.provider.provideItems(request: request) { (result: Result<[TestItem], ProviderError>) in
+                switch result {
+                case .success:
+                    XCTFail("Should have received a partial retrieval failure.")
+                case let .failure(error):
+                    switch error {
+                    case let .partialRetrieval(retrievedItems, persistenceErrors, _):
+                        XCTAssertEqual(retrievedItems.count, 2)
+                        XCTAssertEqual(persistenceErrors.count, 1)
+                    default: XCTFail("Should have received a partial retrieval error.")
+                    }
+                }
+                
+                expectation.fulfill()
+            }
+        }
+        
+        wait(for: [expectation], timeout: 2)
+    }
+    
+    func testProvideItemsDoesNotReturnPartialResponseUponFailureForExpiredItems() {
+        let request = TestProviderRequest()
+        let expectation = self.expectation(description: "The provider will return a partial response.")
+        
+        let originalStub = stub(condition: { _ in true }) { _ in
+            fixture(filePath: OHPathForFile("Items.json", type(of: self))!, headers: nil)
+        }
+
+        expiredProvider.provideItems(request: request) { (result: Result<[TestItem], ProviderError>) in
+            
+            try? self.expiredProvider.cache?.remove(forKey: "Hello 2")
+            HTTPStubs.removeStub(originalStub)
+            
+            stub(condition: { _ in true}) { _ in
+                fixture(filePath: OHPathForFile("Item.json", type(of: self))!, status: 404, headers: nil)
+            }
+            
+            self.expiredProvider.provideItems(request: request) { (result: Result<[TestItem], ProviderError>) in
+                switch result {
+                case .success:
+                    XCTFail("Should have received a network failure.")
+                case let .failure(error):
+                    switch error {
+                    case .networkError: break
+                    default: XCTFail("Should have received a network error.")
+                    }
+                }
+                
                 expectation.fulfill()
             }
         }

@@ -14,6 +14,8 @@ import Persister
 /// Retrieves items from persistence or networking and stores them in persistence.
 public final class ItemProvider {
     
+    private typealias CacheItemsResponse<T: Providable> = (itemContainers: [ItemContainer<T>], partialErrors: [ProviderError.PartialRetrievalPersistenceError])
+    
     /// Performs network requests when items cannot be retrieved from persistence.
     public let networkRequestPerformer: NetworkRequestPerformer
     
@@ -95,19 +97,39 @@ extension ItemProvider: Provider {
             let providerBehaviors = self.defaultProviderBehaviors + providerBehaviors
             providerBehaviors.providerWillProvide(forRequest: request)
             
-            if let cachedItems: [ItemContainer<Item>] = self.cache?.readItems(forKey: request.persistenceKey), !cachedItems.isEmpty {
+            let cacheResponse: CacheItemsResponse<Item>? = try? self.cache?.readItems(forKey: request.persistenceKey)
+            
+            if let cacheResponse = cacheResponse, !cacheResponse.itemContainers.isEmpty {
+                let cachedItems = cacheResponse.itemContainers
+                
                 let items = cachedItems.map { $0.item }
                 let isExpired = cachedItems.contains { $0.expirationDate < Date() }
 
                 if isExpired {
-                    if let expiredCompletion = expiredItemsCompletion {
+                    if let expiredCompletion = expiredItemsCompletion, cacheResponse.partialErrors.isEmpty {
                         completionQueue.async { expiredCompletion(.success(items)) }
                         providerBehaviors.providerDidProvide(item: items, forRequest: request)
                     }
-                } else {
+                } else if cacheResponse.partialErrors.isEmpty {
                     completionQueue.async { completion(.success(items)) }
                     providerBehaviors.providerDidProvide(item: items, forRequest: request)
+                    
                     return
+                }
+            }
+            
+            func networkRequestFailed(error: NetworkError) {
+                let allowsExpiredResponse = expiredItemsCompletion != nil
+                let itemsAreExpired = cacheResponse?.itemContainers.first?.expirationDate < Date()
+                
+                if let cacheResponse = cacheResponse, !cacheResponse.itemContainers.isEmpty {
+                    if !itemsAreExpired || (itemsAreExpired && allowsExpiredResponse) {
+                        completion(.failure(.partialRetrieval(retrievedItems: cacheResponse.itemContainers.map { $0.item }, persistenceErrors: cacheResponse.partialErrors, networkError: error)))
+                    } else {
+                        completion(.failure(.networkError(error)))
+                    }
+                } else {
+                    completion(.failure(.networkError(error)))
                 }
             }
             
@@ -122,13 +144,13 @@ extension ItemProvider: Provider {
                             
                             providerBehaviors.providerDidProvide(item: items, forRequest: request)
                         } catch {
-                            completionQueue.async { completion(.failure(ProviderError.decodingError(error))) }
+                            completionQueue.async { networkRequestFailed(error: .decodingError(error)) }
                         }
                     } else {
-                        completionQueue.async { completion(.failure(.networkError(.noData))) }
+                        completionQueue.async { networkRequestFailed(error: .noData) }
                     }
                 case let .failure(error):
-                    completionQueue.async { completion(.failure(.networkError(error))) }
+                    completionQueue.async { networkRequestFailed(error: error) }
                 }
             }
         }
@@ -149,7 +171,6 @@ extension ItemProvider: Provider {
                 try? self?.cache?.write(item: item, forKey: request.persistenceKey)
             })
             .eraseToAnyPublisher()
-        
         
         let providerPublisher = cachePublisher
             .flatMap { item -> AnyPublisher<Item, ProviderError> in
@@ -182,10 +203,10 @@ extension ItemProvider: Provider {
     }
     
     public func provideItems<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], allowExpiredItems: Bool = false) -> AnyPublisher<[Item], ProviderError> {
-        
-        let cachePublisher = Just<[ItemContainer<Item>]?>(self.cache?.readItems(forKey: request.persistenceKey))
+                
+        let cachePublisher = Just<[ItemContainer<Item>]?>(try? self.cache?.readItems(forKey: request.persistenceKey).0)
             .setFailureType(to: ProviderError.self)
-        
+
         let networkPublisher = networkRequestPerformer.send(request, requestBehaviors: requestBehaviors)
             .mapError { ProviderError.networkError($0) }
             .tryCompactMap { $0.data }
@@ -199,15 +220,15 @@ extension ItemProvider: Provider {
             .eraseToAnyPublisher()
         
         let providerPublisher = cachePublisher
-            .flatMap { items -> AnyPublisher<[Item], ProviderError> in
-                if let items = items {
-                    let itemPublisher = Just(items.map { $0.item })
+            .flatMap { itemContainers -> AnyPublisher<[Item], ProviderError> in
+                if let itemContainers = itemContainers {
+                    let itemPublisher = Just(itemContainers.map { $0.item })
                         .setFailureType(to: ProviderError.self)
                         .eraseToAnyPublisher()
-                                        
-                    if let expiration = items.first?.expirationDate, expiration >= Date() {
+                    
+                    if let expiration = itemContainers.first?.expirationDate, expiration >= Date() {
                         return itemPublisher
-                    } else if allowExpiredItems, let expiration = items.first?.expirationDate, expiration < Date() {
+                    } else if allowExpiredItems, let expiration = itemContainers.first?.expirationDate, expiration < Date() {
                         return itemPublisher.merge(with: networkPublisher).eraseToAnyPublisher()
                     } else {
                         return networkPublisher
@@ -215,7 +236,7 @@ extension ItemProvider: Provider {
                 } else {
                     return networkPublisher
                 }
-            }
+        }
 
         return providerPublisher
                 .handleEvents(receiveSubscription: { _ in
@@ -258,10 +279,36 @@ private func <(lhs: Date?, rhs: Date) -> Bool {
 }
 
 private extension Cache {
-    func readItems<Item: Codable>(forKey key: Key) -> [ItemContainer<Item>]? {
-        let itemIDs: ItemContainer<[String]>? = try? read(forKey: key)
+    func readItems<Item: Codable>(forKey key: Key) throws -> ([ItemContainer<Item>], [ProviderError.PartialRetrievalPersistenceError]) {
+        guard let itemIDsContainer: ItemContainer<[String]> = try read(forKey: key) else {
+            throw PersistenceError.noValidDataForKey
+        }
         
-        return itemIDs?.item.compactMap { try? read(forKey: $0) }
+        var failedItemErrors: [ProviderError.PartialRetrievalPersistenceError] = []
+        let validItems: [ItemContainer<Item>] = itemIDsContainer.item.compactMap {
+            let fallbackError = ProviderError.PartialRetrievalPersistenceError(key: $0, persistenceError: .noValidDataForKey)
+
+            do {
+                if let container: ItemContainer<Item> = try read(forKey: $0) {
+                    return container
+                }
+                
+                failedItemErrors.append(fallbackError)
+                return nil
+            } catch {
+                if let persistenceError = error as? PersistenceError {
+                    let retrievalError = ProviderError.PartialRetrievalPersistenceError(key: $0, persistenceError: persistenceError)
+
+                    failedItemErrors.append(retrievalError)
+                } else {
+                    failedItemErrors.append(fallbackError)
+                }
+                
+                return nil
+            }
+        }
+        
+        return (validItems, failedItemErrors)
     }
     
     func writeItems<Item: Providable>(_ items: [Item], forKey key: Key) {

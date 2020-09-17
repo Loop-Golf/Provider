@@ -203,8 +203,8 @@ extension ItemProvider: Provider {
     }
     
     public func provideItems<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], allowExpiredItems: Bool = false) -> AnyPublisher<[Item], ProviderError> {
-                
-        let cachePublisher = Just<[ItemContainer<Item>]?>(try? self.cache?.readItems(forKey: request.persistenceKey).0)
+        
+        let cachePublisher = Just<CacheItemsResponse<Item>?>(try? self.cache?.readItems(forKey: request.persistenceKey))
             .setFailureType(to: ProviderError.self)
 
         let networkPublisher = networkRequestPerformer.send(request, requestBehaviors: requestBehaviors)
@@ -220,13 +220,27 @@ extension ItemProvider: Provider {
             .eraseToAnyPublisher()
         
         let providerPublisher = cachePublisher
-            .flatMap { itemContainers -> AnyPublisher<[Item], ProviderError> in
-                if let itemContainers = itemContainers {
+            .flatMap { response -> AnyPublisher<[Item], ProviderError> in
+                if let response = response {
+                    let itemContainers = response.itemContainers
+                    
                     let itemPublisher = Just(itemContainers.map { $0.item })
                         .setFailureType(to: ProviderError.self)
                         .eraseToAnyPublisher()
                     
-                    if let expiration = itemContainers.first?.expirationDate, expiration >= Date() {
+                    if !response.partialErrors.isEmpty {
+                        return networkPublisher
+                            .mapError { networkError in
+                                let itemsAreExpired = response.itemContainers.first?.expirationDate < Date()
+                                
+                                if !itemsAreExpired || (itemsAreExpired && allowExpiredItems) {
+                                    return ProviderError.partialRetrieval(retrievedItems: response.itemContainers.map { $0.item }, persistenceErrors: response.partialErrors, networkError: .underlyingNetworkingError(networkError))
+                                } else {
+                                    return networkError
+                                }
+                            }
+                            .eraseToAnyPublisher()
+                    } else if let expiration = itemContainers.first?.expirationDate, expiration >= Date() {
                         return itemPublisher
                     } else if allowExpiredItems, let expiration = itemContainers.first?.expirationDate, expiration < Date() {
                         return itemPublisher.merge(with: networkPublisher).eraseToAnyPublisher()
@@ -237,7 +251,7 @@ extension ItemProvider: Provider {
                     return networkPublisher
                 }
         }
-
+        
         return providerPublisher
                 .handleEvents(receiveSubscription: { _ in
                     providerBehaviors.providerWillProvide(forRequest: request)

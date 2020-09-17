@@ -501,7 +501,6 @@ class ItemProviderTests: XCTestCase {
         
         expiredProvider.provideItems(request: request)
             .receive(on: DispatchQueue.main)
-            .eraseToAnyPublisher()
             .flatMap { (_: [TestItem]) -> AnyPublisher<[TestItem], ProviderError> in
                 return self.expiredProvider.provideItems(request: request, allowExpiredItems: true)
             }
@@ -513,6 +512,96 @@ class ItemProviderTests: XCTestCase {
         
         wait(for: [expectation], timeout: 2)
     }
+    
+    func testProvideItemsPublisherReturnsPartialResponseUponFailure() {
+        let request = TestProviderRequest()
+        let expectation = self.expectation(description: "The provider will return a partial response.")
+        
+        let originalStub = stub(condition: { _ in true }) { _ in
+            fixture(filePath: OHPathForFile("Items.json", type(of: self))!, headers: nil)
+        }
+
+        provider.provideItems(request: request)
+            .receive(on: DispatchQueue.main)
+            .handleEvents(receiveOutput: { _ in
+                try? self.provider.cache?.remove(forKey: "Hello 2")
+                HTTPStubs.removeStub(originalStub)
+                
+                stub(condition: { _ in true}) { _ in
+                    fixture(filePath: OHPathForFile("Item.json", type(of: self))!, status: 404, headers: nil)
+                }
+            })
+            .flatMap { (_: [TestItem]) -> AnyPublisher<[TestItem], ProviderError> in
+                self.provider.provideItems(request: request, allowExpiredItems: true)
+            }
+            .sink(receiveCompletion: { result in
+                switch result {
+                case let .failure(error):
+                    switch error {
+                    case let .partialRetrieval(retrievedItems, persistenceErrors, _):
+                        XCTAssertEqual(retrievedItems.count, 2)
+                        XCTAssertEqual(persistenceErrors.count, 1)
+                    default: XCTFail("This should have resulted in a partial retrieval.")
+                    }
+                case .finished:
+                    XCTFail("This should not have finished.")
+                }
+                
+                expectation.fulfill()
+            }, receiveValue: { (items: [TestItem]) in
+                XCTFail("No values should have been received.")
+                expectation.fulfill()
+            })
+            .store(in: &cancellables)
+        
+        wait(for: [expectation], timeout: 2)
+    }
+    
+    func testProvideItemsPublisherDoesNotReturnPartialResponseUponFailureForExpiredItems() {
+        let request = TestProviderRequest()
+        let expectation = self.expectation(description: "The provider will return a partial response.")
+        
+        let originalStub = stub(condition: { _ in true }) { _ in
+            fixture(filePath: OHPathForFile("Items.json", type(of: self))!, headers: nil)
+        }
+
+        expiredProvider.provideItems(request: request)
+            .receive(on: DispatchQueue.main)
+            .handleEvents(receiveOutput: { _ in
+                try? self.expiredProvider.cache?.remove(forKey: "Hello 2")
+                HTTPStubs.removeStub(originalStub)
+                
+                stub(condition: { _ in true}) { _ in
+                    fixture(filePath: OHPathForFile("Item.json", type(of: self))!, status: 404, headers: nil)
+                }
+            })
+            .flatMap { (_: [TestItem]) -> AnyPublisher<[TestItem], ProviderError> in
+                self.expiredProvider.provideItems(request: request, allowExpiredItems: true)
+            }
+            .sink(receiveCompletion: { result in
+                switch result {
+                case let .failure(error):
+                    switch error {
+                    case let .partialRetrieval(retrievedItems, persistenceErrors, _):
+                        XCTAssertEqual(retrievedItems.count, 2)
+                        XCTAssertEqual(persistenceErrors.count, 1)
+                    default: XCTFail("This should have resulted in a partial retrieval.")
+                    }
+                case .finished:
+                    XCTFail("This should not have finished.")
+                }
+                
+                expectation.fulfill()
+            }, receiveValue: { (items: [TestItem]) in
+                XCTFail("No values should have been received.")
+                expectation.fulfill()
+            })
+            .store(in: &cancellables)
+        
+        wait(for: [expectation], timeout: 2)
+    }
+
+
 }
 
 struct TestProviderRequest: ProviderRequest {

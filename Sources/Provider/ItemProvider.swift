@@ -42,7 +42,7 @@ extension ItemProvider: Provider {
     
     // MARK: - Provider
     
-    public func provide<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], completionQueue: DispatchQueue = .main, allowExpiredItem: Bool = false, completion: @escaping (Result<Item, ProviderError>) -> Void) {
+    public func provide<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], completionQueue: DispatchQueue = .main, allowExpiredItem: Bool = false, itemHandler: @escaping (Result<Item, ProviderError>) -> Void) {
         
         var cancellable: AnyCancellable?
         cancellable = provide(request: request,
@@ -54,18 +54,18 @@ extension ItemProvider: Provider {
             .sink(receiveCompletion: { [weak self] result in
                 switch result {
                 case let .failure(error):
-                    completion(.failure(error))
+                    itemHandler(.failure(error))
                 case .finished:
                     self?.cancellables.remove(cancellable)
                 }
             }, receiveValue: { (item: Item) in
-                completion(.success(item))
+                itemHandler(.success(item))
             })
         
         completionQueue.async { self.cancellables.insert(cancellable) }
     }
     
-    public func provideItems<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], completionQueue: DispatchQueue = .main, allowExpiredItems: Bool = false, completion: @escaping (Result<[Item], ProviderError>) -> Void) {
+    public func provideItems<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], completionQueue: DispatchQueue = .main, allowExpiredItems: Bool = false, itemsHandler: @escaping (Result<[Item], ProviderError>) -> Void) {
         
         var cancellable: AnyCancellable?
         cancellable = provideItems(request: request,
@@ -77,12 +77,12 @@ extension ItemProvider: Provider {
             .sink(receiveCompletion: { [weak self] result in
                 switch result {
                 case let .failure(error):
-                    completion(.failure(error))
+                    itemsHandler(.failure(error))
                 case .finished:
                     self?.cancellables.remove(cancellable)
                 }
             }, receiveValue: { (items: [Item]) in
-                completion(.success(items))
+                itemsHandler(.success(items))
             })
         
         completionQueue.async { self.cancellables.insert(cancellable) }

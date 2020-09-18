@@ -606,7 +606,7 @@ class ItemProviderTests: XCTestCase {
 
 struct TestProviderRequest: ProviderRequest {
     
-    let persistenceKey: Key
+    let persistenceKey: Key?
     var baseURL: URL { URL(string: "https://www.google.com")! }
     var path: String { "" }
 

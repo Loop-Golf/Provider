@@ -104,7 +104,7 @@ class ItemProviderTests: XCTestCase {
         }
         
         expiredProvider.provide(request: request) { (result: Result<TestItem, ProviderError>) in
-            self.expiredProvider.provide(request: request, allowExpiredItem: true, completion: { (result: Result<TestItem, ProviderError>) in
+            self.expiredProvider.provide(request: request, allowExpiredItem: true, itemHandler: { (result: Result<TestItem, ProviderError>) in
                 expectation.fulfill()
             })
         }
@@ -203,7 +203,7 @@ class ItemProviderTests: XCTestCase {
         }
 
         expiredProvider.provideItems(request: request) { (result: Result<[TestItem], ProviderError>) in
-            self.expiredProvider.provideItems(request: request, allowExpiredItems: true, completion: { (result: Result<[TestItem], ProviderError>) in
+            self.expiredProvider.provideItems(request: request, allowExpiredItems: true, itemsHandler: { (result: Result<[TestItem], ProviderError>) in
                 switch result {
                 case let .success(items): XCTAssertEqual(items.count, 3)
                 case .failure: XCTFail("This should not have failed.")

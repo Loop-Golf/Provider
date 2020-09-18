@@ -268,11 +268,11 @@ private extension Cache {
         }
         
         var failedItemErrors: [ProviderError.PartialRetrievalFailure] = []
-        let validItems: [ItemContainer<Item>] = itemIDsContainer.item.compactMap {
-            let fallbackError = ProviderError.PartialRetrievalFailure(key: $0, persistenceError: .noValidDataForKey)
+        let validItems: [ItemContainer<Item>] = itemIDsContainer.item.compactMap { key in
+            let fallbackError = ProviderError.PartialRetrievalFailure(key: key, persistenceError: .noValidDataForKey)
 
             do {
-                if let container: ItemContainer<Item> = try read(forKey: $0) {
+                if let container: ItemContainer<Item> = try read(forKey: key) {
                     return container
                 }
                 
@@ -280,7 +280,7 @@ private extension Cache {
                 return nil
             } catch {
                 if let persistenceError = error as? PersistenceError {
-                    let retrievalError = ProviderError.PartialRetrievalFailure(key: $0, persistenceError: persistenceError)
+                    let retrievalError = ProviderError.PartialRetrievalFailure(key: key, persistenceError: persistenceError)
 
                     failedItemErrors.append(retrievalError)
                 } else {

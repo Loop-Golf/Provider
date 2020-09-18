@@ -90,28 +90,9 @@ extension ItemProvider: Provider {
         
     public func provide<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], allowExpiredItem: Bool = false) -> AnyPublisher<Item, ProviderError> {
         
-        let cachePublisher: Result<ItemContainer<Item>?, ProviderError>.Publisher
+        let cachePublisher: Result<ItemContainer<Item>?, ProviderError>.Publisher = itemCachePublisher(for: request)
         
-        if let persistenceKey = request.persistenceKey {
-            cachePublisher = Just<ItemContainer<Item>?>(try? self.cache?.read(forKey: persistenceKey))
-                .setFailureType(to: ProviderError.self)
-        } else {
-            cachePublisher = Just<ItemContainer<Item>?>(nil)
-                .setFailureType(to: ProviderError.self)
-        }
-        
-        let networkPublisher = networkRequestPerformer.send(request, requestBehaviors: requestBehaviors)
-            .mapError { ProviderError.networkError($0) }
-            .tryCompactMap { $0.data }
-            .mapError { _ in ProviderError.networkError(.noData) }
-            .tryMap { try decoder.decode(Item.self, from: $0) }
-            .mapError { ProviderError.decodingError($0) }
-            .handleEvents(receiveOutput: { [weak self] item in
-                if let persistenceKey = request.persistenceKey {
-                    try? self?.cache?.write(item: item, forKey: persistenceKey)
-                }
-            })
-            .eraseToAnyPublisher()
+        let networkPublisher: AnyPublisher<Item, ProviderError> = itemNetworkPublisher(for: request, behaviors: requestBehaviors, decoder: decoder)
         
         let providerPublisher = cachePublisher
             .flatMap { item -> AnyPublisher<Item, ProviderError> in
@@ -143,31 +124,40 @@ extension ItemProvider: Provider {
                 .eraseToAnyPublisher()
     }
     
-    public func provideItems<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], allowExpiredItems: Bool = false) -> AnyPublisher<[Item], ProviderError> {
-        
-        let cachePublisher: Result<CacheItemsResponse<Item>?, ProviderError>.Publisher
+    private func itemCachePublisher<Item: Providable>(for request: ProviderRequest) -> Result<ItemContainer<Item>?, ProviderError>.Publisher {
+        let cachePublisher: Result<ItemContainer<Item>?, ProviderError>.Publisher
         
         if let persistenceKey = request.persistenceKey {
-            cachePublisher = Just<CacheItemsResponse<Item>?>(try? self.cache?.readItems(forKey: persistenceKey))
+            cachePublisher = Just<ItemContainer<Item>?>(try? self.cache?.read(forKey: persistenceKey))
                 .setFailureType(to: ProviderError.self)
         } else {
-            cachePublisher = Just<CacheItemsResponse<Item>?>(nil)
+            cachePublisher = Just<ItemContainer<Item>?>(nil)
                 .setFailureType(to: ProviderError.self)
         }
-
-        let networkPublisher = networkRequestPerformer.send(request, requestBehaviors: requestBehaviors)
+        
+        return cachePublisher
+    }
+    
+    private func itemNetworkPublisher<Item: Providable>(for request: ProviderRequest, behaviors: [RequestBehavior], decoder: ItemDecoder) -> AnyPublisher<Item, ProviderError> {
+        return networkRequestPerformer.send(request, requestBehaviors: behaviors)
             .mapError { ProviderError.networkError($0) }
             .tryCompactMap { $0.data }
             .mapError { _ in ProviderError.networkError(.noData) }
-            .tryMap { try decoder.decode([Item].self, from: $0) }
+            .tryMap { try decoder.decode(Item.self, from: $0) }
             .mapError { ProviderError.decodingError($0) }
-            .handleEvents(receiveOutput: { [weak self] items in
+            .handleEvents(receiveOutput: { [weak self] item in
                 if let persistenceKey = request.persistenceKey {
-                    self?.cache?.writeItems(items, forKey: persistenceKey)
+                    try? self?.cache?.write(item: item, forKey: persistenceKey)
                 }
             })
-            .print()
             .eraseToAnyPublisher()
+    }
+
+    
+    public func provideItems<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], allowExpiredItems: Bool = false) -> AnyPublisher<[Item], ProviderError> {
+        
+        let cachePublisher: Result<CacheItemsResponse<Item>?, ProviderError>.Publisher = itemsCachePublisher(for: request)
+        let networkPublisher: AnyPublisher<[Item], ProviderError> = itemsNetworkPublisher(for: request, behaviors: requestBehaviors, decoder: decoder)
         
         let providerPublisher = cachePublisher
             .flatMap { response -> AnyPublisher<[Item], ProviderError> in
@@ -210,6 +200,35 @@ extension ItemProvider: Provider {
                 })
                 .subscribe(on: providerQueue)
                 .eraseToAnyPublisher()
+    }
+    
+    private func itemsCachePublisher<Item: Providable>(for request: ProviderRequest) -> Result<CacheItemsResponse<Item>?, ProviderError>.Publisher {
+        let cachePublisher: Result<CacheItemsResponse<Item>?, ProviderError>.Publisher
+        
+        if let persistenceKey = request.persistenceKey {
+            cachePublisher = Just<CacheItemsResponse<Item>?>(try? self.cache?.readItems(forKey: persistenceKey))
+                .setFailureType(to: ProviderError.self)
+        } else {
+            cachePublisher = Just<CacheItemsResponse<Item>?>(nil)
+                .setFailureType(to: ProviderError.self)
+        }
+        
+        return cachePublisher
+    }
+    
+    private func itemsNetworkPublisher<Item: Providable>(for request: ProviderRequest, behaviors: [RequestBehavior], decoder: ItemDecoder) -> AnyPublisher<[Item], ProviderError> {
+        return networkRequestPerformer.send(request, requestBehaviors: behaviors)
+            .mapError { ProviderError.networkError($0) }
+            .tryCompactMap { $0.data }
+            .mapError { _ in ProviderError.networkError(.noData) }
+            .tryMap { try decoder.decode([Item].self, from: $0) }
+            .mapError { ProviderError.decodingError($0) }
+            .handleEvents(receiveOutput: { [weak self] items in
+                if let persistenceKey = request.persistenceKey {
+                    self?.cache?.writeItems(items, forKey: persistenceKey)
+                }
+            })
+            .eraseToAnyPublisher()
     }
 }
 

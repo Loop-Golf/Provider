@@ -253,14 +253,6 @@ extension FileManager {
     }
 }
 
-private func <(lhs: Date?, rhs: Date) -> Bool {
-    if let lhs = lhs {
-        return lhs < rhs
-    }
-    
-    return false
-}
-
 private extension Cache {
     func readItems<Item: Codable>(forKey key: Key) throws -> ([ItemContainer<Item>], [ProviderError.PartialRetrievalFailure]) {
         guard let itemIDsContainer: ItemContainer<[String]> = try read(forKey: key) else {
@@ -302,4 +294,12 @@ private extension Cache {
         let itemIdentifiers = items.compactMap { $0.identifier }
         try? write(item: itemIdentifiers, forKey: key)
     }
+}
+
+private func <(lhs: Date?, rhs: Date) -> Bool {
+    if let lhs = lhs {
+        return lhs < rhs
+    }
+    
+    return false
 }

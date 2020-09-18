@@ -12,8 +12,8 @@ import Persister
 /// Possible errors encountered while attempting to provide items.
 public enum ProviderError: Error {
     
-    /// A struct that represents an error retrieving an individual item during a request for multiple items.
-    public struct PartialRetrievalPersistenceError {
+    /// A struct that represents a failure when retrieving an individual item during a request for multiple items.
+    public struct PartialRetrievalFailure {
         
         /// They key for the item that failed to be retrieved.
         let key: String
@@ -40,7 +40,7 @@ public enum ProviderError: Error {
     /// A request to retrieve multiple items ended in failure. This error provides a partial response in the event that we were able to retrieve some of the requested items from the cache.
     /// - Parameters:
     ///   - retrievedItems: A list of items that were able to be retrieved, that represent a partial list of the requested items.
-    ///   - persistenceErrors: The errors that occurred while attempting to retrieve items from persistence.
+    ///   - persistenceFailures: The errors that occurred while attempting to retrieve items from persistence.
     ///   - networkError: The error that occurred with the network request.
-    case partialRetrieval(retrievedItems: [Providable], persistenceErrors: [PartialRetrievalPersistenceError], networkError: NetworkError)
+    case partialRetrieval(retrievedItems: [Providable], persistenceFailures: [PartialRetrievalFailure], networkError: NetworkError)
 }

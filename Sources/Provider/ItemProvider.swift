@@ -14,7 +14,7 @@ import Persister
 /// Retrieves items from persistence or networking and stores them in persistence.
 public final class ItemProvider {
     
-    private typealias CacheItemsResponse<T: Providable> = (itemContainers: [ItemContainer<T>], partialErrors: [ProviderError.PartialRetrievalPersistenceError])
+    private typealias CacheItemsResponse<T: Providable> = (itemContainers: [ItemContainer<T>], partialErrors: [ProviderError.PartialRetrievalFailure])
     
     /// Performs network requests when items cannot be retrieved from persistence.
     public let networkRequestPerformer: NetworkRequestPerformer
@@ -124,7 +124,7 @@ extension ItemProvider: Provider {
                 
                 if let cacheResponse = cacheResponse, !cacheResponse.itemContainers.isEmpty {
                     if !itemsAreExpired || (itemsAreExpired && allowsExpiredResponse) {
-                        completion(.failure(.partialRetrieval(retrievedItems: cacheResponse.itemContainers.map { $0.item }, persistenceErrors: cacheResponse.partialErrors, networkError: error)))
+                        completion(.failure(.partialRetrieval(retrievedItems: cacheResponse.itemContainers.map { $0.item }, persistenceFailures: cacheResponse.partialErrors, networkError: error)))
                     } else {
                         completion(.failure(.networkError(error)))
                     }
@@ -234,7 +234,7 @@ extension ItemProvider: Provider {
                                 let itemsAreExpired = response.itemContainers.first?.expirationDate < Date()
                                 
                                 if !itemsAreExpired || (itemsAreExpired && allowExpiredItems) {
-                                    return ProviderError.partialRetrieval(retrievedItems: response.itemContainers.map { $0.item }, persistenceErrors: response.partialErrors, networkError: .underlyingNetworkingError(networkError))
+                                    return ProviderError.partialRetrieval(retrievedItems: response.itemContainers.map { $0.item }, persistenceFailures: response.partialErrors, networkError: .underlyingNetworkingError(networkError))
                                 } else {
                                     return networkError
                                 }
@@ -293,14 +293,14 @@ private func <(lhs: Date?, rhs: Date) -> Bool {
 }
 
 private extension Cache {
-    func readItems<Item: Codable>(forKey key: Key) throws -> ([ItemContainer<Item>], [ProviderError.PartialRetrievalPersistenceError]) {
+    func readItems<Item: Codable>(forKey key: Key) throws -> ([ItemContainer<Item>], [ProviderError.PartialRetrievalFailure]) {
         guard let itemIDsContainer: ItemContainer<[String]> = try read(forKey: key) else {
             throw PersistenceError.noValidDataForKey
         }
         
-        var failedItemErrors: [ProviderError.PartialRetrievalPersistenceError] = []
+        var failedItemErrors: [ProviderError.PartialRetrievalFailure] = []
         let validItems: [ItemContainer<Item>] = itemIDsContainer.item.compactMap {
-            let fallbackError = ProviderError.PartialRetrievalPersistenceError(key: $0, persistenceError: .noValidDataForKey)
+            let fallbackError = ProviderError.PartialRetrievalFailure(key: $0, persistenceError: .noValidDataForKey)
 
             do {
                 if let container: ItemContainer<Item> = try read(forKey: $0) {
@@ -311,7 +311,7 @@ private extension Cache {
                 return nil
             } catch {
                 if let persistenceError = error as? PersistenceError {
-                    let retrievalError = ProviderError.PartialRetrievalPersistenceError(key: $0, persistenceError: persistenceError)
+                    let retrievalError = ProviderError.PartialRetrievalFailure(key: $0, persistenceError: persistenceError)
 
                     failedItemErrors.append(retrievalError)
                 } else {

@@ -24,9 +24,9 @@ public protocol Provider {
     ///   - providerBehaviors: Actions to perform before the provider request is performed and / or after the provider request is completed.
     ///   - requestBehaviors: Actions to perform before the network request is performed and / or after the network request is completed. Only called if the item wasn’t successfully retrieved from persistence.
     ///   - completionQueue: The queue on which to call the completion handler.
-    ///   - expiredItemCompletion: A closure called upon retrieving an item that is expired from the cache.
+    ///   - allowExpiredItem: Allows the provider to return an expired item from the cache. If an expired item is returned, the completion will be called for both the expired item, and the item retrieved from the network when available.
     ///   - completion: The closure called upon completing the request that provides the desired item or the error that occurred when attempting to retrieve it.
-    func provide<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], completionQueue: DispatchQueue, expiredItemCompletion: ((Result<Item, Never>) -> Void)?, completion: @escaping (Result<Item, ProviderError>) -> Void)
+    func provide<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], completionQueue: DispatchQueue, allowExpiredItem: Bool, completion: @escaping (Result<Item, ProviderError>) -> Void)
     
     /// Attempts to retrieve an array of items using the provided request, checking persistence first where possible and falling back to the network. If the network is used, the items will be persisted upon success. If the items are expired, the `expiredItemsCompletion` will be called with the items, and a network request will be made to retrieve the up to date items.
     /// - Parameters:
@@ -35,9 +35,9 @@ public protocol Provider {
     ///   - providerBehaviors: Actions to perform before the provider request is performed and / or after the provider request is completed.
     ///   - requestBehaviors: Actions to perform before the network request is performed and / or after the network request is completed. Only called if the items weren’t successfully retrieved from persistence.
     ///   - completionQueue: The queue on which to call the completion handler.
-    ///   - expiredItemsCompletion: A closure called upon retrieving items that are expired from the cache.
+    ///   - allowExpiredItems: Allows the provider to return expired items from the cache. If expired items are returned, the completion will be called for both the expired items, and the items retrieved from the network when available.
     ///   - completion: The closure called upon completing the request that provides the desired items or the error that occurred when attempting to retrieve them.
-    func provideItems<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], completionQueue: DispatchQueue, expiredItemsCompletion: ((Result<[Item], Never>) -> Void)?, completion: @escaping (Result<[Item], ProviderError>) -> Void)
+    func provideItems<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], completionQueue: DispatchQueue, allowExpiredItems: Bool, completion: @escaping (Result<[Item], ProviderError>) -> Void)
     
     /// Produces a publisher which, when subscribed to, attempts to retrieve an item using the provided request, checking persistence first where possible and falling back to the network. If the network is used, the item will be persisted upon success.
     /// - Parameters:

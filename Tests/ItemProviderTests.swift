@@ -104,9 +104,7 @@ class ItemProviderTests: XCTestCase {
         }
         
         expiredProvider.provide(request: request) { (result: Result<TestItem, ProviderError>) in
-            self.expiredProvider.provide(request: request, expiredItemCompletion: { (result: Result<TestItem, Never>) in
-                expectation.fulfill()
-            }, completion: { (result: Result<TestItem, ProviderError>) in
+            self.expiredProvider.provide(request: request, allowExpiredItem: true, completion: { (result: Result<TestItem, ProviderError>) in
                 expectation.fulfill()
             })
         }
@@ -205,14 +203,7 @@ class ItemProviderTests: XCTestCase {
         }
 
         expiredProvider.provideItems(request: request) { (result: Result<[TestItem], ProviderError>) in
-            self.expiredProvider.provideItems(request: request, expiredItemsCompletion: { (result: Result<[TestItem], Never>) in
-                switch result {
-                case let .success(items): XCTAssertEqual(items.count, 3)
-                case .failure: XCTFail("This should not have failed.")
-                }
-
-                expectation.fulfill()
-            }, completion: { (result: Result<[TestItem], ProviderError>) in
+            self.expiredProvider.provideItems(request: request, allowExpiredItems: true, completion: { (result: Result<[TestItem], ProviderError>) in
                 switch result {
                 case let .success(items): XCTAssertEqual(items.count, 3)
                 case .failure: XCTFail("This should not have failed.")
@@ -285,7 +276,7 @@ class ItemProviderTests: XCTestCase {
                     XCTFail("Should have received a network failure.")
                 case let .failure(error):
                     switch error {
-                    case .networkError: break
+                    case .decodingError: break
                     default: XCTFail("Should have received a network error.")
                     }
                 }
@@ -576,16 +567,15 @@ class ItemProviderTests: XCTestCase {
                 }
             })
             .flatMap { (_: [TestItem]) -> AnyPublisher<[TestItem], ProviderError> in
-                self.expiredProvider.provideItems(request: request, allowExpiredItems: true)
+                self.expiredProvider.provideItems(request: request)
             }
             .sink(receiveCompletion: { result in
                 switch result {
                 case let .failure(error):
                     switch error {
-                    case let .partialRetrieval(retrievedItems, persistenceErrors, _):
-                        XCTAssertEqual(retrievedItems.count, 2)
-                        XCTAssertEqual(persistenceErrors.count, 1)
-                    default: XCTFail("This should have resulted in a partial retrieval.")
+                    case .decodingError: break
+                    default:
+                        XCTFail("This should have resulted in a decoding error.")
                     }
                 case .finished:
                     XCTFail("This should not have finished.")

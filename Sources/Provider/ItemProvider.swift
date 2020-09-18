@@ -24,6 +24,7 @@ public final class ItemProvider {
     
     private let defaultProviderBehaviors: [ProviderBehavior]
     private let providerQueue = DispatchQueue(label: "ProviderQueue", attributes: .concurrent)
+    private var cancellables = Set<AnyCancellable?>()
     
     /// Creates a new `ItemProvider`.
     /// - Parameters:
@@ -41,132 +42,50 @@ extension ItemProvider: Provider {
     
     // MARK: - Provider
     
-    public func provide<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], completionQueue: DispatchQueue = .main, expiredItemCompletion: ((Result<Item, Never>) -> Void)? = nil, completion: @escaping (Result<Item, ProviderError>) -> Void) {
-        providerQueue.async { [weak self] in
-            guard let self = self else {
-                completionQueue.async { completion(.failure(ProviderError.noStrongReferenceToProvider)) }
-                return
-            }
-            
-            let providerBehaviors = self.defaultProviderBehaviors + providerBehaviors
-            providerBehaviors.providerWillProvide(forRequest: request)
-            
-            if let persistenceKey = request.persistenceKey, let cachedContainer: ItemContainer<Item> = try? self.cache?.read(forKey: persistenceKey) {
-                if cachedContainer.expirationDate < Date() {
-                    if let expiredCompletion = expiredItemCompletion {
-                        completionQueue.async { expiredCompletion(.success(cachedContainer.item)) }
-                        providerBehaviors.providerDidProvide(item: cachedContainer.item, forRequest: request)
-                    }
-                } else {
-                    completionQueue.async { completion(.success(cachedContainer.item)) }
-                    providerBehaviors.providerDidProvide(item: cachedContainer.item, forRequest: request)
-                    return
-                }
-            }
-            
-            self.networkRequestPerformer.send(request, requestBehaviors: requestBehaviors) { [weak self] (result: Result<NetworkResponse, NetworkError>) in
+    public func provide<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], completionQueue: DispatchQueue = .main, allowExpiredItem: Bool = false, completion: @escaping (Result<Item, ProviderError>) -> Void) {
+        
+        var cancellable: AnyCancellable?
+        cancellable = provide(request: request,
+                     decoder: decoder,
+                     providerBehaviors: providerBehaviors,
+                     requestBehaviors: requestBehaviors,
+                     allowExpiredItem: allowExpiredItem)
+            .receive(on: completionQueue)
+            .sink(receiveCompletion: { [weak self] result in
                 switch result {
-                case let .success(response):
-                    if let data = response.data {
-                        do {
-                            let item = try decoder.decode(Item.self, from: data)
-                            
-                            if let persistenceKey = request.persistenceKey {
-                                try self?.cache?.write(item: item, forKey: persistenceKey)
-                            }
-                            
-                            completionQueue.async { completion(.success(item)) }
-                            
-                            providerBehaviors.providerDidProvide(item: item, forRequest: request)
-                        } catch {
-                            completionQueue.async { completion(.failure(ProviderError.decodingError(error))) }
-                        }
-                    } else {
-                        completionQueue.async { completion(.failure(.networkError(.noData)))}
-                    }
                 case let .failure(error):
-                    completionQueue.async { completion(.failure(.networkError(error))) }
+                    completion(.failure(error))
+                case .finished:
+                    self?.cancellables.remove(cancellable)
                 }
-            }
-        }
+            }, receiveValue: { (item: Item) in
+                completion(.success(item))
+            })
+        
+        completionQueue.async { self.cancellables.insert(cancellable) }
     }
     
-    public func provideItems<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], completionQueue: DispatchQueue = .main, expiredItemsCompletion: ((Result<[Item], Never>) -> Void)? = nil, completion: @escaping (Result<[Item], ProviderError>) -> Void) {
-        providerQueue.async { [weak self] in
-            guard let self = self else {
-                completionQueue.async { completion(.failure(ProviderError.noStrongReferenceToProvider)) }
-                return
-            }
-            
-            let providerBehaviors = self.defaultProviderBehaviors + providerBehaviors
-            providerBehaviors.providerWillProvide(forRequest: request)
-            
-            let cacheResponse: CacheItemsResponse<Item>?
-            if let persistenceKey = request.persistenceKey {
-                cacheResponse = try? self.cache?.readItems(forKey: persistenceKey)
-            } else {
-                cacheResponse = nil
-            }
-            
-            if let cacheResponse = cacheResponse, !cacheResponse.itemContainers.isEmpty {
-                let cachedItems = cacheResponse.itemContainers
-                
-                let items = cachedItems.map { $0.item }
-                let isExpired = cachedItems.contains { $0.expirationDate < Date() }
-
-                if isExpired {
-                    if let expiredCompletion = expiredItemsCompletion, cacheResponse.partialErrors.isEmpty {
-                        completionQueue.async { expiredCompletion(.success(items)) }
-                        providerBehaviors.providerDidProvide(item: items, forRequest: request)
-                    }
-                } else if cacheResponse.partialErrors.isEmpty {
-                    completionQueue.async { completion(.success(items)) }
-                    providerBehaviors.providerDidProvide(item: items, forRequest: request)
-                    
-                    return
-                }
-            }
-            
-            func networkRequestFailed(error: NetworkError) {
-                let allowsExpiredResponse = expiredItemsCompletion != nil
-                let itemsAreExpired = cacheResponse?.itemContainers.first?.expirationDate < Date()
-                
-                if let cacheResponse = cacheResponse, !cacheResponse.itemContainers.isEmpty {
-                    if !itemsAreExpired || (itemsAreExpired && allowsExpiredResponse) {
-                        completion(.failure(.partialRetrieval(retrievedItems: cacheResponse.itemContainers.map { $0.item }, persistenceFailures: cacheResponse.partialErrors, networkError: error)))
-                    } else {
-                        completion(.failure(.networkError(error)))
-                    }
-                } else {
-                    completion(.failure(.networkError(error)))
-                }
-            }
-            
-            self.networkRequestPerformer.send(request, requestBehaviors: requestBehaviors) { [weak self] (result: Result<NetworkResponse, NetworkError>) in
+    public func provideItems<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], completionQueue: DispatchQueue = .main, allowExpiredItems: Bool = false, completion: @escaping (Result<[Item], ProviderError>) -> Void) {
+        
+        var cancellable: AnyCancellable?
+        cancellable = provideItems(request: request,
+                     decoder: decoder,
+                     providerBehaviors: providerBehaviors,
+                     requestBehaviors: requestBehaviors,
+                     allowExpiredItems: allowExpiredItems)
+            .receive(on: completionQueue)
+            .sink(receiveCompletion: { [weak self] result in
                 switch result {
-                case let .success(response):
-                    if let data = response.data {
-                        do {
-                            let items = try decoder.decode([Item].self, from: data)
-                            
-                            if let persistenceKey = request.persistenceKey {
-                                self?.cache?.writeItems(items, forKey: persistenceKey)
-                            }
-                            
-                            completionQueue.async { completion(.success(items)) }
-                            
-                            providerBehaviors.providerDidProvide(item: items, forRequest: request)
-                        } catch {
-                            completionQueue.async { networkRequestFailed(error: .decodingError(error)) }
-                        }
-                    } else {
-                        completionQueue.async { networkRequestFailed(error: .noData) }
-                    }
                 case let .failure(error):
-                    completionQueue.async { networkRequestFailed(error: error) }
+                    completion(.failure(error))
+                case .finished:
+                    self?.cancellables.remove(cancellable)
                 }
-            }
-        }
+            }, receiveValue: { (items: [Item]) in
+                completion(.success(items))
+            })
+        
+        completionQueue.async { self.cancellables.insert(cancellable) }
     }
         
     public func provide<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], allowExpiredItem: Bool = false) -> AnyPublisher<Item, ProviderError> {

@@ -10,7 +10,7 @@ import Networking
 import Persister
 
 /// Possible errors encountered while attempting to provide items.
-public enum ProviderError: Error {
+public indirect enum ProviderError: Error {
     
     /// A struct that represents a failure when retrieving an individual item during a request for multiple items.
     public struct PartialRetrievalFailure {
@@ -41,6 +41,6 @@ public enum ProviderError: Error {
     /// - Parameters:
     ///   - retrievedItems: A list of items that were able to be retrieved, that represent a partial list of the requested items.
     ///   - persistenceFailures: The errors that occurred while attempting to retrieve items from persistence.
-    ///   - networkError: The error that occurred with the network request.
-    case partialRetrieval(retrievedItems: [Providable], persistenceFailures: [PartialRetrievalFailure], networkError: NetworkError)
+    ///   - providerError: The error that occurred when trying to retrieve the complete list of items from the network.
+    case partialRetrieval(retrievedItems: [Providable], persistenceFailures: [PartialRetrievalFailure], providerError: ProviderError)
 }

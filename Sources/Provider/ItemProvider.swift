@@ -180,13 +180,13 @@ extension ItemProvider: Provider {
                     
                     if !response.partialErrors.isEmpty {
                         return networkPublisher
-                            .mapError { networkError in
+                            .mapError { providerError in
                                 let itemsAreExpired = response.itemContainers.first?.expirationDate < Date()
                                 
                                 if !itemsAreExpired || (itemsAreExpired && allowExpiredItems) {
-                                    return ProviderError.partialRetrieval(retrievedItems: response.itemContainers.map { $0.item }, persistenceFailures: response.partialErrors, networkError: .underlyingNetworkingError(networkError))
+                                    return ProviderError.partialRetrieval(retrievedItems: response.itemContainers.map { $0.item }, persistenceFailures: response.partialErrors, providerError: providerError)
                                 } else {
-                                    return networkError
+                                    return providerError
                                 }
                             }
                             .eraseToAnyPublisher()

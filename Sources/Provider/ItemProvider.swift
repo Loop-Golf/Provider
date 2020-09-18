@@ -51,7 +51,7 @@ extension ItemProvider: Provider {
             let providerBehaviors = self.defaultProviderBehaviors + providerBehaviors
             providerBehaviors.providerWillProvide(forRequest: request)
             
-            if let cachedContainer: ItemContainer<Item> = try? self.cache?.read(forKey: request.persistenceKey) {
+            if let persistenceKey = request.persistenceKey, let cachedContainer: ItemContainer<Item> = try? self.cache?.read(forKey: persistenceKey) {
                 if cachedContainer.expirationDate < Date() {
                     if let expiredCompletion = expiredItemCompletion {
                         completionQueue.async { expiredCompletion(.success(cachedContainer.item)) }
@@ -70,7 +70,11 @@ extension ItemProvider: Provider {
                     if let data = response.data {
                         do {
                             let item = try decoder.decode(Item.self, from: data)
-                            try self?.cache?.write(item: item, forKey: request.persistenceKey)
+                            
+                            if let persistenceKey = request.persistenceKey {
+                                try self?.cache?.write(item: item, forKey: persistenceKey)
+                            }
+                            
                             completionQueue.async { completion(.success(item)) }
                             
                             providerBehaviors.providerDidProvide(item: item, forRequest: request)
@@ -97,7 +101,12 @@ extension ItemProvider: Provider {
             let providerBehaviors = self.defaultProviderBehaviors + providerBehaviors
             providerBehaviors.providerWillProvide(forRequest: request)
             
-            let cacheResponse: CacheItemsResponse<Item>? = try? self.cache?.readItems(forKey: request.persistenceKey)
+            let cacheResponse: CacheItemsResponse<Item>?
+            if let persistenceKey = request.persistenceKey {
+                cacheResponse = try? self.cache?.readItems(forKey: persistenceKey)
+            } else {
+                cacheResponse = nil
+            }
             
             if let cacheResponse = cacheResponse, !cacheResponse.itemContainers.isEmpty {
                 let cachedItems = cacheResponse.itemContainers
@@ -139,7 +148,11 @@ extension ItemProvider: Provider {
                     if let data = response.data {
                         do {
                             let items = try decoder.decode([Item].self, from: data)
-                            self?.cache?.writeItems(items, forKey: request.persistenceKey)
+                            
+                            if let persistenceKey = request.persistenceKey {
+                                self?.cache?.writeItems(items, forKey: persistenceKey)
+                            }
+                            
                             completionQueue.async { completion(.success(items)) }
                             
                             providerBehaviors.providerDidProvide(item: items, forRequest: request)
@@ -158,8 +171,15 @@ extension ItemProvider: Provider {
         
     public func provide<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], allowExpiredItem: Bool = false) -> AnyPublisher<Item, ProviderError> {
         
-        let cachePublisher = Just<ItemContainer<Item>?>(try? self.cache?.read(forKey: request.persistenceKey))
-            .setFailureType(to: ProviderError.self)
+        let cachePublisher: Result<ItemContainer<Item>?, ProviderError>.Publisher
+        
+        if let persistenceKey = request.persistenceKey {
+            cachePublisher = Just<ItemContainer<Item>?>(try? self.cache?.read(forKey: persistenceKey))
+                .setFailureType(to: ProviderError.self)
+        } else {
+            cachePublisher = Just<ItemContainer<Item>?>(nil)
+                .setFailureType(to: ProviderError.self)
+        }
         
         let networkPublisher = networkRequestPerformer.send(request, requestBehaviors: requestBehaviors)
             .mapError { ProviderError.networkError($0) }
@@ -168,7 +188,9 @@ extension ItemProvider: Provider {
             .tryMap { try decoder.decode(Item.self, from: $0) }
             .mapError { ProviderError.decodingError($0) }
             .handleEvents(receiveOutput: { [weak self] item in
-                try? self?.cache?.write(item: item, forKey: request.persistenceKey)
+                if let persistenceKey = request.persistenceKey {
+                    try? self?.cache?.write(item: item, forKey: persistenceKey)
+                }
             })
             .eraseToAnyPublisher()
         
@@ -204,8 +226,15 @@ extension ItemProvider: Provider {
     
     public func provideItems<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], allowExpiredItems: Bool = false) -> AnyPublisher<[Item], ProviderError> {
         
-        let cachePublisher = Just<CacheItemsResponse<Item>?>(try? self.cache?.readItems(forKey: request.persistenceKey))
-            .setFailureType(to: ProviderError.self)
+        let cachePublisher: Result<CacheItemsResponse<Item>?, ProviderError>.Publisher
+        
+        if let persistenceKey = request.persistenceKey {
+            cachePublisher = Just<CacheItemsResponse<Item>?>(try? self.cache?.readItems(forKey: persistenceKey))
+                .setFailureType(to: ProviderError.self)
+        } else {
+            cachePublisher = Just<CacheItemsResponse<Item>?>(nil)
+                .setFailureType(to: ProviderError.self)
+        }
 
         let networkPublisher = networkRequestPerformer.send(request, requestBehaviors: requestBehaviors)
             .mapError { ProviderError.networkError($0) }
@@ -214,7 +243,9 @@ extension ItemProvider: Provider {
             .tryMap { try decoder.decode([Item].self, from: $0) }
             .mapError { ProviderError.decodingError($0) }
             .handleEvents(receiveOutput: { [weak self] items in
-                self?.cache?.writeItems(items, forKey: request.persistenceKey)
+                if let persistenceKey = request.persistenceKey {
+                    self?.cache?.writeItems(items, forKey: persistenceKey)
+                }
             })
             .print()
             .eraseToAnyPublisher()

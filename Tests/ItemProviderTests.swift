@@ -234,7 +234,7 @@ class ItemProviderTests: XCTestCase {
             HTTPStubs.removeStub(originalStub)
             
             stub(condition: { _ in true}) { _ in
-                fixture(filePath: OHPathForFile("Item.json", type(of: self))!, status: 404, headers: nil)
+                fixture(filePath: OHPathForFile("Item.json", type(of: self))!, headers: nil)
             }
             
             self.provider.provideItems(request: request) { (result: Result<[TestItem], ProviderError>) in
@@ -528,7 +528,7 @@ class ItemProviderTests: XCTestCase {
                 HTTPStubs.removeStub(originalStub)
                 
                 stub(condition: { _ in true}) { _ in
-                    fixture(filePath: OHPathForFile("Item.json", type(of: self))!, status: 404, headers: nil)
+                    fixture(filePath: OHPathForFile("Item.json", type(of: self))!, headers: nil)
                 }
             })
             .flatMap { (_: [TestItem]) -> AnyPublisher<[TestItem], ProviderError> in
@@ -576,7 +576,7 @@ class ItemProviderTests: XCTestCase {
                 HTTPStubs.removeStub(originalStub)
                 
                 stub(condition: { _ in true}) { _ in
-                    fixture(filePath: OHPathForFile("Item.json", type(of: self))!, status: 404, headers: nil)
+                    fixture(filePath: OHPathForFile("Item.json", type(of: self))!, headers: nil)
                 }
             })
             .flatMap { (_: [TestItem]) -> AnyPublisher<[TestItem], ProviderError> in

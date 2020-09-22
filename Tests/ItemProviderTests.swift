@@ -248,7 +248,7 @@ class ItemProviderTests: XCTestCase {
                         XCTAssertEqual(persistenceErrors.count, 1)
                         
                         if case ProviderError.decodingError = error { } else {
-                            XCTFail("Wrong error")
+                            XCTFail("Incorrect error received.")
                         }
                         
                     default: XCTFail("Should have received a partial retrieval error.")
@@ -282,11 +282,11 @@ class ItemProviderTests: XCTestCase {
             self.expiredProvider.provideItems(request: request) { (result: Result<[TestItem], ProviderError>) in
                 switch result {
                 case .success:
-                    XCTFail("Should have received a network failure.")
+                    XCTFail("Should have received a decoding error.")
                 case let .failure(error):
                     switch error {
                     case .decodingError: break
-                    default: XCTFail("Should have received a network error.")
+                    default: XCTFail("Should have received a decoding error.")
                     }
                 }
                 
@@ -538,9 +538,13 @@ class ItemProviderTests: XCTestCase {
                 switch result {
                 case let .failure(error):
                     switch error {
-                    case let .partialRetrieval(retrievedItems, persistenceErrors, _):
+                    case let .partialRetrieval(retrievedItems, persistenceErrors, error):
                         XCTAssertEqual(retrievedItems.count, 2)
                         XCTAssertEqual(persistenceErrors.count, 1)
+                        
+                        if case ProviderError.decodingError = error { } else {
+                            XCTFail("Incorrect error received.")
+                        }
                     default: XCTFail("This should have resulted in a partial retrieval.")
                     }
                 case .finished:

@@ -27,7 +27,9 @@ class ItemProviderTests: XCTestCase {
     }()
     
     private var cancellables = Set<AnyCancellable>()
-    
+    private lazy var itemPath = OHPathForFile("Item.json", type(of: self))!
+    private lazy var itemsPath = OHPathForFile("Items.json", type(of: self))!
+
     override func tearDown() {
         HTTPStubs.removeAllStubs()
         try? provider.cache?.removeAll()
@@ -42,7 +44,7 @@ class ItemProviderTests: XCTestCase {
         let expectation = self.expectation(description: "The item will exist.")
         
         stub(condition: { _ in true }) { _ in
-            fixture(filePath: OHPathForFile("Item.json", type(of: self))!, headers: nil)
+            fixture(filePath: self.itemPath, headers: nil)
         }
         
         provider.provide(request: request) { (result: Result<TestItem, ProviderError>) in
@@ -64,7 +66,7 @@ class ItemProviderTests: XCTestCase {
         let expectation = self.expectation(description: "The item will exist.")
         
         let originalStub = stub(condition: { _ in true }) { _ in
-            fixture(filePath: OHPathForFile("Item.json", type(of: self))!, headers: nil)
+            fixture(filePath: self.itemPath, headers: nil)
         }
         
         provider.provide(request: request) { (result: Result<TestItem, ProviderError>) in
@@ -100,7 +102,7 @@ class ItemProviderTests: XCTestCase {
         expectation.expectedFulfillmentCount = 2
         
         stub(condition: { _ in true }) { _ in
-            fixture(filePath: OHPathForFile("Item.json", type(of: self))!, headers: nil)
+            fixture(filePath: self.itemPath, headers: nil)
         }
         
         expiredProvider.provide(request: request) { (result: Result<TestItem, ProviderError>) in
@@ -144,7 +146,7 @@ class ItemProviderTests: XCTestCase {
         let expectation = self.expectation(description: "The items will exist.")
         
         stub(condition: { _ in true }) { _ in
-            fixture(filePath: OHPathForFile("Items.json", type(of: self))!, headers: nil)
+            fixture(filePath: self.itemsPath, headers: nil)
         }
         
         provider.provideItems(request: request) { (result: Result<[TestItem], ProviderError>) in
@@ -167,7 +169,7 @@ class ItemProviderTests: XCTestCase {
         let expectation = self.expectation(description: "The item will exist.")
         
         let originalStub = stub(condition: { _ in true }) { _ in
-            fixture(filePath: OHPathForFile("Items.json", type(of: self))!, headers: nil)
+            fixture(filePath: self.itemsPath, headers: nil)
         }
         
         provider.provideItems(request: request) { (result: Result<[TestItem], ProviderError>) in
@@ -203,7 +205,7 @@ class ItemProviderTests: XCTestCase {
         expectation.expectedFulfillmentCount = 2
         
         stub(condition: { _ in true }) { _ in
-            fixture(filePath: OHPathForFile("Items.json", type(of: self))!, headers: nil)
+            fixture(filePath: self.itemsPath, headers: nil)
         }
 
         expiredProvider.provideItems(request: request) { (result: Result<[TestItem], ProviderError>) in
@@ -225,7 +227,7 @@ class ItemProviderTests: XCTestCase {
         let expectation = self.expectation(description: "The provider will return a partial response.")
         
         let originalStub = stub(condition: { _ in true }) { _ in
-            fixture(filePath: OHPathForFile("Items.json", type(of: self))!, headers: nil)
+            fixture(filePath: self.itemsPath, headers: nil)
         }
 
         provider.provideItems(request: request) { (result: Result<[TestItem], ProviderError>) in
@@ -234,7 +236,7 @@ class ItemProviderTests: XCTestCase {
             HTTPStubs.removeStub(originalStub)
             
             stub(condition: { _ in true}) { _ in
-                fixture(filePath: OHPathForFile("Item.json", type(of: self))!, headers: nil)
+                fixture(filePath: self.itemPath, headers: nil)
             }
             
             self.provider.provideItems(request: request) { (result: Result<[TestItem], ProviderError>) in
@@ -267,7 +269,7 @@ class ItemProviderTests: XCTestCase {
         let expectation = self.expectation(description: "The provider will return a partial response.")
         
         let originalStub = stub(condition: { _ in true }) { _ in
-            fixture(filePath: OHPathForFile("Items.json", type(of: self))!, headers: nil)
+            fixture(filePath: self.itemsPath, headers: nil)
         }
 
         expiredProvider.provideItems(request: request) { (result: Result<[TestItem], ProviderError>) in
@@ -276,7 +278,7 @@ class ItemProviderTests: XCTestCase {
             HTTPStubs.removeStub(originalStub)
             
             stub(condition: { _ in true}) { _ in
-                fixture(filePath: OHPathForFile("Item.json", type(of: self))!, headers: nil)
+                fixture(filePath: self.itemPath, headers: nil)
             }
             
             self.expiredProvider.provideItems(request: request) { (result: Result<[TestItem], ProviderError>) in
@@ -326,7 +328,7 @@ class ItemProviderTests: XCTestCase {
         let expectation = self.expectation(description: "The item will exist.")
         
         stub(condition: { _ in true }) { _ in
-            fixture(filePath: OHPathForFile("Item.json", type(of: self))!, headers: nil)
+            fixture(filePath: self.itemPath, headers: nil)
         }
         
         provider.provide(request: request)
@@ -368,7 +370,7 @@ class ItemProviderTests: XCTestCase {
         let expectation = self.expectation(description: "The item will exist.")
         
         let originalStub = stub(condition: { _ in true }) { _ in
-            fixture(filePath: OHPathForFile("Item.json", type(of: self))!, headers: nil)
+            fixture(filePath: self.itemPath, headers: nil)
         }
         
         provider.provide(request: request)
@@ -399,7 +401,7 @@ class ItemProviderTests: XCTestCase {
         expectation.expectedFulfillmentCount = 2
         
         stub(condition: { _ in true }) { _ in
-            fixture(filePath: OHPathForFile("Item.json", type(of: self))!, headers: nil)
+            fixture(filePath: self.itemPath, headers: nil)
         }
         
         expiredProvider.provide(request: request)
@@ -422,7 +424,7 @@ class ItemProviderTests: XCTestCase {
         let expectation = self.expectation(description: "The item will exist.")
         
         stub(condition: { _ in true }) { _ in
-            fixture(filePath: OHPathForFile("Items.json", type(of: self))!, headers: nil)
+            fixture(filePath: self.itemsPath, headers: nil)
         }
         
         provider.provideItems(request: request)
@@ -464,7 +466,7 @@ class ItemProviderTests: XCTestCase {
         let expectation = self.expectation(description: "The item will exist.")
         
         let originalStub = stub(condition: { _ in true }) { _ in
-            fixture(filePath: OHPathForFile("Items.json", type(of: self))!, headers: nil)
+            fixture(filePath: self.itemsPath, headers: nil)
         }
         
         provider.provideItems(request: request)
@@ -496,7 +498,7 @@ class ItemProviderTests: XCTestCase {
         expectation.expectedFulfillmentCount = 2
         
         stub(condition: { _ in true }) { _ in
-            fixture(filePath: OHPathForFile("Items.json", type(of: self))!, headers: nil)
+            fixture(filePath: self.itemsPath, headers: nil)
         }
         
         expiredProvider.provideItems(request: request)
@@ -518,7 +520,7 @@ class ItemProviderTests: XCTestCase {
         let expectation = self.expectation(description: "The provider will return a partial response.")
         
         let originalStub = stub(condition: { _ in true }) { _ in
-            fixture(filePath: OHPathForFile("Items.json", type(of: self))!, headers: nil)
+            fixture(filePath: self.itemsPath, headers: nil)
         }
 
         provider.provideItems(request: request)
@@ -528,7 +530,7 @@ class ItemProviderTests: XCTestCase {
                 HTTPStubs.removeStub(originalStub)
                 
                 stub(condition: { _ in true}) { _ in
-                    fixture(filePath: OHPathForFile("Item.json", type(of: self))!, headers: nil)
+                    fixture(filePath: self.itemPath, headers: nil)
                 }
             })
             .flatMap { (_: [TestItem]) -> AnyPublisher<[TestItem], ProviderError> in
@@ -566,7 +568,7 @@ class ItemProviderTests: XCTestCase {
         let expectation = self.expectation(description: "The provider will return a partial response.")
         
         let originalStub = stub(condition: { _ in true }) { _ in
-            fixture(filePath: OHPathForFile("Items.json", type(of: self))!, headers: nil)
+            fixture(filePath: self.itemsPath, headers: nil)
         }
 
         expiredProvider.provideItems(request: request)
@@ -576,7 +578,7 @@ class ItemProviderTests: XCTestCase {
                 HTTPStubs.removeStub(originalStub)
                 
                 stub(condition: { _ in true}) { _ in
-                    fixture(filePath: OHPathForFile("Item.json", type(of: self))!, headers: nil)
+                    fixture(filePath: self.itemPath, headers: nil)
                 }
             })
             .flatMap { (_: [TestItem]) -> AnyPublisher<[TestItem], ProviderError> in

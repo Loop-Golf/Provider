@@ -246,9 +246,16 @@ class ItemProviderTests: XCTestCase {
                 case let .failure(error):
                     switch error {
                     case let .partialRetrieval(retrievedItems, persistenceErrors, error):
-                        XCTAssertEqual(retrievedItems.count, 2)
-                        XCTAssertEqual(persistenceErrors.count, 1)
+                        let expectedItemIDs = ["Hello 1", "Hello 3"]
                         
+                        XCTAssertEqual(retrievedItems.map { $0.identifier }, expectedItemIDs)
+                        XCTAssertEqual(persistenceErrors.count, 1)
+                        XCTAssertEqual(persistenceErrors.first?.key, "Hello 2")
+                        
+                        if let persistenceError = persistenceErrors.first?.persistenceError, case PersistenceError.noValidDataForKey = persistenceError { } else {
+                            XCTFail("Incorrect error received.")
+                        }
+
                         if case ProviderError.decodingError = error { } else {
                             XCTFail("Incorrect error received.")
                         }
@@ -541,8 +548,15 @@ class ItemProviderTests: XCTestCase {
                 case let .failure(error):
                     switch error {
                     case let .partialRetrieval(retrievedItems, persistenceErrors, error):
-                        XCTAssertEqual(retrievedItems.count, 2)
+                        let expectedItemIDs = ["Hello 1", "Hello 3"]
+                        
+                        XCTAssertEqual(retrievedItems.map { $0.identifier }, expectedItemIDs)
                         XCTAssertEqual(persistenceErrors.count, 1)
+                        XCTAssertEqual(persistenceErrors.first?.key, "Hello 2")
+                        
+                        if let persistenceError = persistenceErrors.first?.persistenceError, case PersistenceError.noValidDataForKey = persistenceError { } else {
+                            XCTFail("Incorrect error received.")
+                        }
                         
                         if case ProviderError.decodingError = error { } else {
                             XCTFail("Incorrect error received.")
@@ -554,7 +568,7 @@ class ItemProviderTests: XCTestCase {
                 }
                 
                 expectation.fulfill()
-            }, receiveValue: { (items: [TestItem]) in
+            }, receiveValue: { (_: [TestItem]) in
                 XCTFail("No values should have been received.")
                 expectation.fulfill()
             })

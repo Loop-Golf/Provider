@@ -105,7 +105,11 @@ class ItemProviderTests: XCTestCase {
         
         expiredProvider.provide(request: request) { (result: Result<TestItem, ProviderError>) in
             self.expiredProvider.provide(request: request, allowExpiredItem: true, itemHandler: { (result: Result<TestItem, ProviderError>) in
-                expectation.fulfill()
+                switch result {
+                case .success: expectation.fulfill()
+                case .failure: break
+                }
+                
             })
         }
         
@@ -239,9 +243,14 @@ class ItemProviderTests: XCTestCase {
                     XCTFail("Should have received a partial retrieval failure.")
                 case let .failure(error):
                     switch error {
-                    case let .partialRetrieval(retrievedItems, persistenceErrors, _):
+                    case let .partialRetrieval(retrievedItems, persistenceErrors, error):
                         XCTAssertEqual(retrievedItems.count, 2)
                         XCTAssertEqual(persistenceErrors.count, 1)
+                        
+                        if case ProviderError.decodingError = error { } else {
+                            XCTFail("Wrong error")
+                        }
+                        
                     default: XCTFail("Should have received a partial retrieval error.")
                     }
                 }
@@ -267,7 +276,7 @@ class ItemProviderTests: XCTestCase {
             HTTPStubs.removeStub(originalStub)
             
             stub(condition: { _ in true}) { _ in
-                fixture(filePath: OHPathForFile("Item.json", type(of: self))!, status: 404, headers: nil)
+                fixture(filePath: OHPathForFile("Item.json", type(of: self))!, headers: nil)
             }
             
             self.expiredProvider.provideItems(request: request) { (result: Result<[TestItem], ProviderError>) in

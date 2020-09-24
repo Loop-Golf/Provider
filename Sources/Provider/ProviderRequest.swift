@@ -12,5 +12,5 @@ import Networking
 public protocol ProviderRequest: NetworkRequest {
     
     /// The key to use for persistence of the item.
-    var persistenceKey: Key { get }
+    var persistenceKey: Key? { get }
 }

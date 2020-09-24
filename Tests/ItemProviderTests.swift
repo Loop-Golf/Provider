@@ -252,12 +252,14 @@ class ItemProviderTests: XCTestCase {
                         XCTAssertEqual(persistenceErrors.count, 1)
                         XCTAssertEqual(persistenceErrors.first?.key, "Hello 2")
                         
-                        if let persistenceError = persistenceErrors.first?.persistenceError, case PersistenceError.noValidDataForKey = persistenceError { } else {
+                        guard case ProviderError.decodingError = error else {
                             XCTFail("Incorrect error received.")
+                            return
                         }
-
-                        if case ProviderError.decodingError = error { } else {
+                        
+                        guard let persistenceError = persistenceErrors.first?.persistenceError, case PersistenceError.noValidDataForKey = persistenceError else {
                             XCTFail("Incorrect error received.")
+                            return
                         }
                         
                     default: XCTFail("Should have received a partial retrieval error.")
@@ -554,13 +556,16 @@ class ItemProviderTests: XCTestCase {
                         XCTAssertEqual(persistenceErrors.count, 1)
                         XCTAssertEqual(persistenceErrors.first?.key, "Hello 2")
                         
-                        if let persistenceError = persistenceErrors.first?.persistenceError, case PersistenceError.noValidDataForKey = persistenceError { } else {
+                        guard case ProviderError.decodingError = error else {
                             XCTFail("Incorrect error received.")
+                            return
                         }
                         
-                        if case ProviderError.decodingError = error { } else {
+                        guard let persistenceError = persistenceErrors.first?.persistenceError, case PersistenceError.noValidDataForKey = persistenceError else {
                             XCTFail("Incorrect error received.")
+                            return
                         }
+                        
                     default: XCTFail("This should have resulted in a partial retrieval.")
                     }
                 case .finished:

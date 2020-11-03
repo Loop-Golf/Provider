@@ -6,7 +6,7 @@
         "repositoryURL": "https://github.com/Lickability/Networking",
         "state": {
           "branch": "main",
-          "revision": "a24f373a18017a6e50a4d7a1136cd118eb44ce61",
+          "revision": "93a752f0e1ed5824a57d9bf6e502d14f76a2bc93",
           "version": null
         }
       },
@@ -24,7 +24,7 @@
         "repositoryURL": "https://github.com/Lickability/Persister",
         "state": {
           "branch": "main",
-          "revision": "223a52ecf2d02df9a57c94acc9b405f4114b4ebf",
+          "revision": "ac8f39433b3ced5df28f6c414d06ddc50a57ba7c",
           "version": null
         }
       }

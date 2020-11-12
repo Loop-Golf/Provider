@@ -143,10 +143,8 @@ extension ItemProvider: Provider {
     private func itemNetworkPublisher<Item: Providable>(for request: ProviderRequest, behaviors: [RequestBehavior], decoder: ItemDecoder) -> AnyPublisher<Item, ProviderError> {
         return networkRequestPerformer.send(request, requestBehaviors: behaviors)
             .mapError { ProviderError.networkError($0) }
-            .tryCompactMap { $0.data }
-            .mapError { _ in ProviderError.networkError(.noData) }
-            .tryMap { try decoder.decode(Item.self, from: $0) }
-            .mapError { ProviderError.decodingError($0) }
+            .unpackData(errorTransform: { _ in ProviderError.networkError(.noData) })
+            .decodeItem(decoder: decoder, errorTransform: { ProviderError.decodingError($0) })
             .handleEvents(receiveOutput: { [weak self] item in
                 if let persistenceKey = request.persistenceKey {
                     try? self?.cache?.write(item: item, forKey: persistenceKey)
@@ -219,12 +217,11 @@ extension ItemProvider: Provider {
     }
     
     private func itemsNetworkPublisher<Item: Providable>(for request: ProviderRequest, behaviors: [RequestBehavior], decoder: ItemDecoder) -> AnyPublisher<[Item], ProviderError> {
+        
         return networkRequestPerformer.send(request, requestBehaviors: behaviors)
             .mapError { ProviderError.networkError($0) }
-            .tryCompactMap { $0.data }
-            .mapError { _ in ProviderError.networkError(.noData) }
-            .tryMap { try decoder.decode([Item].self, from: $0) }
-            .mapError { ProviderError.decodingError($0) }
+            .unpackData(errorTransform: { _ in ProviderError.networkError(.noData) })
+            .decodeItems(decoder: decoder, errorTransform: { ProviderError.decodingError($0) })
             .handleEvents(receiveOutput: { [weak self] items in
                 if let persistenceKey = request.persistenceKey {
                     self?.cache?.writeItems(items, forKey: persistenceKey)
@@ -304,4 +301,37 @@ private func <(lhs: Date?, rhs: Date) -> Bool {
     }
     
     return false
+}
+
+private extension Publisher {
+    
+    func unpackData(errorTransform: @escaping (Error) -> Failure) -> Publishers.FlatMap<AnyPublisher<Data, ProviderError>, Self> where Failure == ProviderError, Self.Output == NetworkResponse {
+        
+        return flatMap {
+            Just($0)
+                .tryCompactMap { $0.data }
+                .mapError { errorTransform($0) }
+                .eraseToAnyPublisher()
+        }
+    }
+    
+    func decodeItem<Item: Providable>(decoder: ItemDecoder, errorTransform: @escaping (Error) -> Failure) -> Publishers.FlatMap<AnyPublisher<Item, ProviderError>, Self> where Failure == ProviderError, Self.Output == Data {
+
+        return flatMap {
+            Just($0)
+                .tryMap { try decoder.decode(Item.self, from: $0) }
+                .mapError { errorTransform($0) }
+                .eraseToAnyPublisher()
+        }
+    }
+    
+    func decodeItems<Item: Providable>(decoder: ItemDecoder, errorTransform: @escaping (Error) -> Failure) -> Publishers.FlatMap<AnyPublisher<[Item], ProviderError>, Self> where Failure == ProviderError, Self.Output == Data {
+
+        return flatMap {
+            Just($0)
+                .tryMap { try decoder.decode([Item].self, from: $0) }
+                .mapError { errorTransform($0) }
+                .eraseToAnyPublisher()
+        }
+    }
 }

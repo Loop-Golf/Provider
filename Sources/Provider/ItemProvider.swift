@@ -129,7 +129,7 @@ extension ItemProvider: Provider {
     private func itemCachePublisher<Item: Providable>(for request: ProviderRequest) -> Result<ItemContainer<Item>?, ProviderError>.Publisher {
         let cachePublisher: Result<ItemContainer<Item>?, ProviderError>.Publisher
         
-        if let persistenceKey = request.persistenceKey {
+        if !request.shouldSkipCacheRead, let persistenceKey = request.persistenceKey {
             cachePublisher = Just<ItemContainer<Item>?>(try? self.cache?.read(forKey: persistenceKey))
                 .setFailureType(to: ProviderError.self)
         } else {
@@ -205,7 +205,7 @@ extension ItemProvider: Provider {
     private func itemsCachePublisher<Item: Providable>(for request: ProviderRequest) -> Result<CacheItemsResponse<Item>?, ProviderError>.Publisher {
         let cachePublisher: Result<CacheItemsResponse<Item>?, ProviderError>.Publisher
         
-        if let persistenceKey = request.persistenceKey {
+        if !request.shouldSkipCacheRead, let persistenceKey = request.persistenceKey {
             cachePublisher = Just<CacheItemsResponse<Item>?>(try? self.cache?.readItems(forKey: persistenceKey))
                 .setFailureType(to: ProviderError.self)
         } else {

@@ -625,7 +625,32 @@ class ItemProviderTests: XCTestCase {
         wait(for: [expectation], timeout: 2)
     }
 
+    func testProvideItemSkipsCacheOnPostRequest() {
+        let key = "TestPostKey"
+        let request = TestPostProviderRequest(key: key)
+        
+        let expectation = self.expectation(description: "The item will exist.")
+        
+        let testItem = TestItem(title: "Title")
+        try? provider.cache?.write(item: testItem, forKey: key)
+        
+        stub(condition: { _ in true }) { _ in
+            fixture(filePath: OHPathForFile("Item.json", type(of: self))!, headers: nil)
+        }
 
+        provider.provide(request: request) { (result: Result<TestItem, ProviderError>) in
+            switch result {
+            case let .success(item):
+                XCTAssertNotEqual(item.title, testItem.title)
+            case let .failure(error):
+                XCTFail("There should be no error: \(error)")
+            }
+            
+            expectation.fulfill()
+        }
+        
+        wait(for: [expectation], timeout: 2)
+    }
 }
 
 struct TestProviderRequest: ProviderRequest {
@@ -636,6 +661,20 @@ struct TestProviderRequest: ProviderRequest {
 
     init(key: Key = "TestExample") {
         self.persistenceKey = key
+    }
+}
+
+struct TestPostProviderRequest: ProviderRequest {
+    let persistenceKey: Key?
+    var baseURL: URL { URL(string: "https://www.google.com")! }
+    var path: String { "" }
+
+    init(key: Key = "TestPostExample") {
+        self.persistenceKey = key
+    }
+    
+    var httpMethod: HTTPMethod {
+        return .post
     }
 }
 

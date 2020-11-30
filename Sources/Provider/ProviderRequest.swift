@@ -16,4 +16,17 @@ public protocol ProviderRequest: NetworkRequest {
     /// * For multiple item requests, the `persistenceKey` represents the collection of items returned as a whole.
     /// - Note: If `persistenceKey` is `nil`, `Provider` will not check the cache for item(s), and will not store the provided item(s) in the cache.
     var persistenceKey: Key? { get }
+    
+    /// A `Bool` that can be set to ignore any locally cached results. By default requests with the `GET` `HTTPMethod` return `false`, otherwise this returns `true`.
+    var ignoresCachedContent: Bool { get }
+}
+
+extension ProviderRequest {
+    
+    var ignoresCachedContent: Bool {
+        switch httpMethod {
+        case .get: return false
+        case .patch, .post, .put, .delete: return true
+        }
+    }
 }

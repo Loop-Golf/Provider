@@ -15,12 +15,12 @@ public protocol ProviderRequest: NetworkRequest {
     var persistenceKey: Key? { get }
     
     /// A `Bool` that can be set to ignore any locally cached results. By default requests with the `GET` `HTTPMethod` return `false`, otherwise this returns `true`.
-    var shouldSkipCacheRead: Bool { get }
+    var ignoresCachedContent: Bool { get }
 }
 
 extension ProviderRequest {
     
-    var shouldSkipCacheRead: Bool {
+    var ignoresCachedContent: Bool {
         switch httpMethod {
         case .get: return false
         case .patch, .post, .put, .delete: return true

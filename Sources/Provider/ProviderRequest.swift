@@ -21,7 +21,7 @@ public protocol ProviderRequest: NetworkRequest {
     var ignoresCachedContent: Bool { get }
 }
 
-extension ProviderRequest {
+public extension ProviderRequest {
     
     var ignoresCachedContent: Bool {
         switch httpMethod {

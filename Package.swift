@@ -12,11 +12,11 @@ let package = Package(
     dependencies: [
         .package(
             url: "https://github.com/Lickability/Networking",
-            .branch("main")
+            .upToNextMajor(from: "1.0.0")
         ),
         .package(
             url: "https://github.com/Lickability/Persister",
-            .branch("main")
+            .upToNextMajor(from: "1.0.0")
         )
     ],
     targets: [.target(name: name, dependencies: ["Networking", "Persister"], resources: [.process("Resources")])]

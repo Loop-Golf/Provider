@@ -5,18 +5,18 @@
         "package": "Networking",
         "repositoryURL": "https://github.com/Lickability/Networking",
         "state": {
-          "branch": "main",
-          "revision": "33745f3dc8c5db31d197ae2c891ebac09bde51a8",
-          "version": null
+          "branch": null,
+          "revision": "54ba83b22a932e870a4e99f3176a34c810c7c2c2",
+          "version": "1.0.0"
         }
       },
       {
         "package": "Persister",
         "repositoryURL": "https://github.com/Lickability/Persister",
         "state": {
-          "branch": "main",
-          "revision": "e2c48a5550d4f2a5601d25018cb75030439363af",
-          "version": null
+          "branch": null,
+          "revision": "556198feaa1b37cfb54328af43dcb2709002972a",
+          "version": "1.0.0"
         }
       }
     ]

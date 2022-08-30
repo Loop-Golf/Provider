@@ -49,7 +49,11 @@ public final class ProvideItemsRequestStateController<Item: Providable> {
                     switch error {
                     case let .networkError(networkError):
                         return networkError
-                    default:
+                    case let .decodingError(error):
+                        return error as? LocalizedError
+                    case let .partialRetrieval(_, _, providerError):
+                        return providerError
+                    case let .persistenceError(error):
                         return error
                     }
                 }

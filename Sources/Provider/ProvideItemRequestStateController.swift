@@ -50,12 +50,10 @@ public final class ProvideItemRequestStateController<Item: Providable> {
                     case let .networkError(networkError):
                         return networkError
                     case let .decodingError(error):
-                        if let decodingError = error as? DecodingError {
-                            print(decodingError)
-                        }
-                        
                         return error as? LocalizedError
-                    default:
+                    case let .partialRetrieval(_, _, providerError):
+                        return providerError
+                    case let .persistenceError(error):
                         return error
                     }
                 }

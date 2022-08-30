@@ -599,7 +599,7 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Lickability/Networking";
 			requirement = {
-				branch = "feature/add-request-state-controller";
+				branch = main;
 				kind = branch;
 			};
 		};

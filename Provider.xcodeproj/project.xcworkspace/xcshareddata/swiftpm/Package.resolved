@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Lickability/Networking",
       "state" : {
-        "branch" : "feature/add-request-state-controller",
-        "revision" : "15cfe0963589f240d6403de22018ec3002d10537"
+        "branch" : "main",
+        "revision" : "0ed53ac918cce33d6273b430da29c296ae58edc2"
       }
     },
     {

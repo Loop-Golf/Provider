@@ -78,12 +78,12 @@ public final class ProvideItemRequestStateController<Item: Providable> {
         }
                 
         /// A `Bool` indicating if the request has finished successfully.
-        public var didFinishSuccessfully: Bool {
+        public var didSucceed: Bool {
             return completedItem != nil
         }
         
         /// A `Bool` indicating if the request has finished with an error.
-        public var didFinishUnsuccessfully: Bool {
+        public var didFail: Bool {
             return completedError != nil
         }
     }

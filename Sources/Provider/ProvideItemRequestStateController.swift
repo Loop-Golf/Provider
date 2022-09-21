@@ -112,7 +112,7 @@ public final class ProvideItemRequestStateController<Item: Providable> {
         providerStatePublisher.send(.inProgress)
 
         provider.provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, allowExpiredItem: allowExpiredItem)
-            .mapToResult()
+            .mapAsResult()
             .receive(on: DispatchQueue.main)
             .sink { [providerStatePublisher] result in
                 providerStatePublisher.send(.completed(result))

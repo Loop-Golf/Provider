@@ -129,7 +129,11 @@ extension ItemProvider: Provider {
                             return itemPublisher
                         }
                     case .returnFromCacheAndNetwork:
-                        return cachedItemAndNetworkPublisher
+                        if !allowExpiredItem && isItemExpired {
+                            return networkPublisher
+                        } else {
+                            return cachedItemAndNetworkPublisher
+                        }
                     }
                 } else {
                     return networkPublisher
@@ -216,7 +220,11 @@ extension ItemProvider: Provider {
                             return itemPublisher
                         }
                     case .returnFromCacheAndNetwork:
-                        return cachedItemsAndNetworkPublisher
+                        if !allowExpiredItems && areItemsExpired {
+                            return networkPublisher
+                        } else {
+                            return cachedItemsAndNetworkPublisher
+                        }
                     }
                 } else {
                     return networkPublisher

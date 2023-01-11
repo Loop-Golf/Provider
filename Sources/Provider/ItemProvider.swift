@@ -40,7 +40,7 @@ public final class ItemProvider {
     ///   - networkRequestPerformer: Performs network requests when items cannot be retrieved from persistence.
     ///   - cache: The cache used to persist / recall previously retrieved items.
     ///   - defaultProviderBehaviors: Actions to perform before _every_ provider request is performed and / or after _every_ provider request is completed.
-    public init(networkRequestPerformer: NetworkRequestPerformer, cache: Cache?, fetchPolicy: FetchPolicy, defaultProviderBehaviors: [ProviderBehavior] = []) {
+    public init(networkRequestPerformer: NetworkRequestPerformer, cache: Cache?, fetchPolicy: FetchPolicy = .returnFromCacheElseNetwork, defaultProviderBehaviors: [ProviderBehavior] = []) {
         self.networkRequestPerformer = networkRequestPerformer
         self.cache = cache
         self.fetchPolicy = fetchPolicy

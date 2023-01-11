@@ -13,12 +13,13 @@ import Persister
 
 /// Retrieves items from persistence or networking and stores them in persistence.
 public final class ItemProvider {
+    
     /// The policy for how the provider checks the cache and/or the network for items.
     public enum FetchPolicy {
-        /// Only request from the network if we don't have items in the cache.
+        /// Only request from the network if we don't have items in the cache. If items exist in the cache and are expired, it returns items from the cache and the network.
         case returnFromCacheElseNetwork
         
-        /// Return data from the cache, then request from the network for updated items.
+        /// Return items from the cache, then request from the network for updated items.
         case returnFromCacheAndNetwork
     }
     
@@ -39,6 +40,7 @@ public final class ItemProvider {
     /// - Parameters:
     ///   - networkRequestPerformer: Performs network requests when items cannot be retrieved from persistence.
     ///   - cache: The cache used to persist / recall previously retrieved items.
+    ///   - fetchPolicy: The policy for how the provider checks the cache and/or the network for items. Defaults to `.returnFromCacheElseNetwork`.
     ///   - defaultProviderBehaviors: Actions to perform before _every_ provider request is performed and / or after _every_ provider request is completed.
     public init(networkRequestPerformer: NetworkRequestPerformer, cache: Cache?, fetchPolicy: FetchPolicy = .returnFromCacheElseNetwork, defaultProviderBehaviors: [ProviderBehavior] = []) {
         self.networkRequestPerformer = networkRequestPerformer

@@ -191,11 +191,11 @@ extension ItemProvider: Provider {
                         .setFailureType(to: ProviderError.self)
                         .eraseToAnyPublisher()
                     
+                    let itemsAreExpired = itemContainers.first?.expirationDate.map { $0 < Date() } == true
+                    
                     if !response.partialErrors.isEmpty {
                         return networkPublisher
                             .mapError { providerError in
-                                let itemsAreExpired = response.itemContainers.first?.expirationDate < Date()
-                                
                                 if !itemsAreExpired || (itemsAreExpired && allowExpiredItems) {
                                     return ProviderError.partialRetrieval(retrievedItems: response.itemContainers.map { $0.item }, persistenceFailures: response.partialErrors, providerError: providerError)
                                 } else {
@@ -205,12 +205,11 @@ extension ItemProvider: Provider {
                             .eraseToAnyPublisher()
                     }
                     
-                    let areItemsExpired = itemContainers.first?.expirationDate.map { $0 < Date() } == true
                     let cachedItemsAndNetworkPublisher = itemPublisher.merge(with: networkPublisher).eraseToAnyPublisher()
                     
                     switch fetchPolicy {
                     case .returnFromCacheElseNetwork:
-                        if areItemsExpired {
+                        if itemsAreExpired {
                             if allowExpiredItems {
                                 return cachedItemsAndNetworkPublisher
                             } else {
@@ -220,7 +219,7 @@ extension ItemProvider: Provider {
                             return itemPublisher
                         }
                     case .returnFromCacheAndNetwork:
-                        if !allowExpiredItems && areItemsExpired {
+                        if !allowExpiredItems && itemsAreExpired {
                             return networkPublisher
                         } else {
                             return cachedItemsAndNetworkPublisher

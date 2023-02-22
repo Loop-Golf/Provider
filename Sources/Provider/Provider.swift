@@ -26,7 +26,7 @@ public protocol Provider {
     ///   - handlerQueue: The queue on which to call the `itemHandler`.
     ///   - allowExpiredItem: Allows the provider to return an expired item from the cache. If an expired item is returned, the completion will be called for both the expired item, and the item retrieved from the network when available.
     ///   - itemHandler: The closure called upon completing the request that provides the desired item or the error that occurred when attempting to retrieve it.
-    func provide<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], handlerQueue: DispatchQueue, allowExpiredItem: Bool, itemHandler: @escaping (Result<Item, ProviderError>) -> Void)
+    func provide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], handlerQueue: DispatchQueue, allowExpiredItem: Bool, itemHandler: @escaping (Result<Item, ProviderError>) -> Void)
     
     /// Attempts to retrieve an array of items using the provided request, checking persistence first where possible and falling back to the network. If the network is used, the items will be persisted upon success. If `allowExpiredItems` is true, and the expired items exist, the `itemHandler` will first be called with the expired items, and then called again with the result of the network request.
     /// - Parameters:
@@ -37,7 +37,7 @@ public protocol Provider {
     ///   - handlerQueue: The queue on which to call the `itemsHandler`.
     ///   - allowExpiredItems: Allows the provider to return expired items from the cache. If expired items are returned, the completion will be called for both the expired items, and the items retrieved from the network when available.
     ///   - itemsHandler: The closure called upon completing the request that provides the desired items or the error that occurred when attempting to retrieve them.
-    func provideItems<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], handlerQueue: DispatchQueue, allowExpiredItems: Bool, itemsHandler: @escaping (Result<[Item], ProviderError>) -> Void)
+    func provideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], handlerQueue: DispatchQueue, allowExpiredItems: Bool, itemsHandler: @escaping (Result<[Item], ProviderError>) -> Void)
     
     /// Produces a publisher which, when subscribed to, attempts to retrieve an item using the provided request, checking persistence first where possible and falling back to the network. If the network is used, the item will be persisted upon success.
     /// - Parameters:
@@ -46,7 +46,7 @@ public protocol Provider {
     ///   - providerBehaviors: Actions to perform before the provider request is performed and / or after the provider request is completed.
     ///   - requestBehaviors: Actions to perform before the network request is performed and / or after the network request is completed. Only called if the items weren’t successfully retrieved from persistence.
     ///   - allowExpiredItem: Allows the publisher to publish an expired item from the cache. If an expired item is published, this publisher will then also publish an up to date item from the network when it is available.
-    func provide<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], allowExpiredItem: Bool) -> AnyPublisher<Item, ProviderError>
+    func provide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], allowExpiredItem: Bool) -> AnyPublisher<Item, ProviderError>
     
     /// Produces a publisher which, when subscribed to, attempts to retrieve an array of items using the provided request, checking persistence first where possible and falling back to the network. If the network is used, the items will be persisted upon success.
     /// - Parameters:
@@ -55,5 +55,5 @@ public protocol Provider {
     ///   - providerBehaviors: Actions to perform before the provider request is performed and / or after the provider request is completed.
     ///   - requestBehaviors: Actions to perform before the network request is performed and / or after the network request is completed. Only called if the items weren’t successfully retrieved from persistence.
     ///   - allowExpiredItems: Allows the publisher to publish expired items from the cache. If expired items are published, this publisher will then also publish up to date results from the network when they are available.
-    func provideItems<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], allowExpiredItems: Bool) -> AnyPublisher<[Item], ProviderError>
+    func provideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], allowExpiredItems: Bool) -> AnyPublisher<[Item], ProviderError>
 }

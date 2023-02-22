@@ -13,26 +13,26 @@ public protocol ProviderBehavior {
     
     /// Called before a provider request is performed.
     /// - Parameter request: The request that will be made.
-    func providerWillProvide(forRequest request: ProviderRequest)
+    func providerWillProvide(forRequest request: any ProviderRequest)
     
     /// Called when the provider request has completed and an item has been provided.
     /// - Parameters:
     ///   - item: The requested item.
     ///   - request: The request that was performed to retrieve the item.
-    func providerDidProvide<Item: Codable>(item: Item, forRequest request: ProviderRequest)
+    func providerDidProvide<Item: Codable>(item: Item, forRequest request: any ProviderRequest)
 }
 
 extension ProviderBehavior {
-    func providerWillProvide(forRequest request: ProviderRequest) { }
-    func providerDidProvide<Item: Codable>(item: Item, forRequest request: ProviderRequest) { }
+    func providerWillProvide(forRequest request: any ProviderRequest) { }
+    func providerDidProvide<Item: Codable>(item: Item, forRequest request: any ProviderRequest) { }
 }
 
 extension Array: ProviderBehavior where Element == ProviderBehavior {
-    public func providerWillProvide(forRequest request: ProviderRequest) {
+    public func providerWillProvide(forRequest request: any ProviderRequest) {
         forEach { $0.providerWillProvide(forRequest: request) }
     }
     
-    public func providerDidProvide<Item: Codable>(item: Item, forRequest request: ProviderRequest) {
+    public func providerDidProvide<Item: Codable>(item: Item, forRequest request: any ProviderRequest) {
         forEach { $0.providerDidProvide(item: item, forRequest: request) }
     }
 }

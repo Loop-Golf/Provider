@@ -108,7 +108,7 @@ public final class ProvideItemsRequestStateController<Item: Providable> {
     ///   - providerBehaviors: Additional `ProviderBehavior`s to use.
     ///   - requestBehaviors: Additional `RequestBehavior`s to append to the request.
     ///   - allowExpiredItem: A `Bool` indicating if the provider should be allowed to return an expired item.
-    public func provideItems(request: ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], allowExpiredItems: Bool = false) {
+    public func provideItems(request: any ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], allowExpiredItems: Bool = false) {
         providerStatePublisher.send(.inProgress)
 
         provider.provideItems(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, allowExpiredItems: allowExpiredItems)

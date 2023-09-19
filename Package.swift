@@ -11,7 +11,7 @@ let package = Package(
     products: [.library(name: name, targets: [name])],
     dependencies: [
         .package(
-            url: "https://github.com/Lickability/Networking",
+            url: "https://github.com/Loop-Golf/Networking",
             .upToNextMajor(from: "2.0.0")
         ),
         .package(
